@@ -5,6 +5,7 @@ import { DayDeepDive } from './components/DayDeepDive';
 import { DateSimulator } from './components/DateSimulator';
 import { JournalView } from './components/JournalView';
 import { NotesProvider } from './context/NotesContext';
+import { WeatherProvider } from './context/WeatherContext';
 import { TRIP_START_DATE, TRIP_END_DATE } from './constants';
 
 const App: React.FC = () => {
@@ -15,6 +16,7 @@ const App: React.FC = () => {
 
   return (
     <NotesProvider>
+    <WeatherProvider currentDate={simulatedDate}>
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
       <header className="bg-indigo-800 text-white py-6 px-4 shadow-xl sticky top-0 z-50">
@@ -82,6 +84,7 @@ const App: React.FC = () => {
         />
       )}
     </div>
+    </WeatherProvider>
     </NotesProvider>
   );
 };

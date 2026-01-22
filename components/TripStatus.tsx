@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { WeatherDisplay } from './WeatherDisplay';
 
 interface TripStatusProps {
   currentDate: Date;
@@ -411,6 +412,8 @@ export const TripStatus: React.FC<TripStatusProps> = ({ currentDate, onDateChang
               </p>
             </div>
           </div>
+
+          <WeatherDisplay date={currentDate.toISOString().split('T')[0]} />
         </div>
       </div>
 

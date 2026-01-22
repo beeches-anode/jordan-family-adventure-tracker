@@ -35,3 +35,18 @@ export interface Note {
   timezone?: string;   // IANA timezone e.g., "America/Lima"
   photos?: Photo[];    // Optional array of photos
 }
+
+export interface DayWeather {
+  id?: string;
+  date: string;                    // ISO: "2026-01-25"
+  location: string;                // "Lima, Peru"
+  lat: number;
+  lng: number;
+  tempMax: number;                 // Celsius
+  tempMin: number;                 // Celsius
+  precipitationChance: number;     // 0-100 percentage
+  weatherCode: number;             // WMO weather code
+  weatherDescription: string;      // "Partly cloudy"
+  fetchedAt: Date;                 // When this data was fetched
+  isHistorical: boolean;           // true = past day, locked in forever
+}
