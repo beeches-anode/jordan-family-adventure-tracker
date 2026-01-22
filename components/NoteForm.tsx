@@ -30,6 +30,53 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
   const [selectedPhotos, setSelectedPhotos] = useState<SelectedPhoto[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const insertFormatting = (prefix: string, suffix: string = prefix) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    const newText =
+      content.substring(0, start) +
+      prefix + selectedText + suffix +
+      content.substring(end);
+
+    setContent(newText);
+
+    // Restore cursor position after the inserted text
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = selectedText
+        ? start + prefix.length + selectedText.length + suffix.length
+        : start + prefix.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const insertBulletPoint = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    // Find the start of the current line
+    const lineStart = content.lastIndexOf('\n', start - 1) + 1;
+
+    const newText =
+      content.substring(0, lineStart) +
+      '- ' +
+      content.substring(lineStart);
+
+    setContent(newText);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + 2, start + 2);
+    }, 0);
+  };
 
   useEffect(() => {
     const authenticated = sessionStorage.getItem(SESSION_KEY) === 'true';
@@ -211,7 +258,35 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
 
         <div>
           <label className="block text-sm font-medium text-slate-600 mb-2">Your note</label>
+          {/* Formatting toolbar */}
+          <div className="flex gap-1 mb-2">
+            <button
+              type="button"
+              onClick={() => insertFormatting('**')}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition-colors"
+              title="Bold"
+            >
+              B
+            </button>
+            <button
+              type="button"
+              onClick={() => insertFormatting('*')}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 italic text-sm transition-colors"
+              title="Italic"
+            >
+              I
+            </button>
+            <button
+              type="button"
+              onClick={insertBulletPoint}
+              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm transition-colors"
+              title="Bullet point"
+            >
+              • List
+            </button>
+          </div>
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's happening on your adventure today?"
