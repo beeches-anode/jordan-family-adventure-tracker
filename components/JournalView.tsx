@@ -25,10 +25,20 @@ const formatDateHeader = (dateStr: string): string => {
   });
 };
 
-const formatTime = (date: Date): string => {
+const formatLocalTime = (date: Date): string => {
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
+    hour12: true,
+  });
+};
+
+const formatBrisbaneTime = (date: Date): string => {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Brisbane',
   });
 };
 
@@ -234,9 +244,10 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                           >
                             {note.author}
                           </span>
-                          <span className="text-xs text-slate-400">
-                            {formatTime(note.createdAt)}
-                          </span>
+                          <div className="text-right text-xs">
+                            <div className="text-slate-500">{formatLocalTime(note.createdAt)} local</div>
+                            <div className="text-slate-400">{formatBrisbaneTime(note.createdAt)} BNE</div>
+                          </div>
                         </div>
                         <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">
                           {note.content}

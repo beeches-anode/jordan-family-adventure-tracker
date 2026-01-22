@@ -5,16 +5,21 @@ interface NotesListProps {
   date: string;
 }
 
-const formatRelativeTime = (date: Date): string => {
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+const formatLocalTime = (date: Date): string => {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
 
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+const formatBrisbaneTime = (date: Date): string => {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Australia/Brisbane',
+  });
 };
 
 export const NotesList: React.FC<NotesListProps> = ({ date }) => {
@@ -77,9 +82,10 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
               >
                 {note.author}
               </span>
-              <span className="text-xs text-slate-400">
-                {formatRelativeTime(note.createdAt)}
-              </span>
+              <div className="text-right text-xs">
+                <div className="text-slate-500">{formatLocalTime(note.createdAt)} local</div>
+                <div className="text-slate-400">{formatBrisbaneTime(note.createdAt)} Brisbane</div>
+              </div>
             </div>
             <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
               {note.content}
