@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { NotesList } from './NotesList';
+import { NoteForm } from './NoteForm';
 
 interface DayDeepDiveProps {
   currentDate: Date;
@@ -283,6 +285,9 @@ export const DayDeepDive: React.FC<DayDeepDiveProps> = ({ currentDate }) => {
 
   const content = getContent(currentDate);
 
+  // Format date for notes (ISO format: "2026-01-25")
+  const dateStr = currentDate.toISOString().split('T')[0];
+
   // Map URLs
   const continentalMapUrl = `https://maps.google.com/maps?q=${content.lat},${content.lng}&z=3&t=m&output=embed`;
   const localMapUrl = `https://maps.google.com/maps?q=${content.lat},${content.lng}&z=${content.localZoom}&t=k&output=embed`;
@@ -355,6 +360,12 @@ export const DayDeepDive: React.FC<DayDeepDiveProps> = ({ currentDate }) => {
           <h5 className="font-bold text-amber-900 text-sm mb-1 uppercase tracking-tight">Did you know?</h5>
           <p className="text-amber-800/80 text-sm italic font-medium leading-snug">"{content.funFact}"</p>
         </div>
+      </div>
+
+      {/* Journal Notes Section */}
+      <div className="px-8 pb-8 space-y-6">
+        <NotesList date={dateStr} />
+        <NoteForm date={dateStr} location={content.title} />
       </div>
     </div>
   );

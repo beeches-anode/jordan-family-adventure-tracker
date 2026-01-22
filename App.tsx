@@ -3,14 +3,18 @@ import React, { useState } from 'react';
 import { TripStatus } from './components/TripStatus';
 import { DayDeepDive } from './components/DayDeepDive';
 import { DateSimulator } from './components/DateSimulator';
+import { JournalView } from './components/JournalView';
+import { NotesProvider } from './context/NotesContext';
 import { TRIP_START_DATE, TRIP_END_DATE } from './constants';
 
 const App: React.FC = () => {
   const [simulatedDate, setSimulatedDate] = useState<Date>(() => {
     return new Date(TRIP_START_DATE);
   });
+  const [showJournal, setShowJournal] = useState(false);
 
   return (
+    <NotesProvider>
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
       <header className="bg-indigo-800 text-white py-6 px-4 shadow-xl sticky top-0 z-50">
@@ -27,12 +31,23 @@ const App: React.FC = () => {
             </div>
           </div>
           
-          <DateSimulator 
-            currentDate={simulatedDate} 
-            onDateChange={setSimulatedDate} 
-            minDate={TRIP_START_DATE} 
-            maxDate={TRIP_END_DATE}
-          />
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowJournal(true)}
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors border border-white/20"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span className="hidden sm:inline">Journal</span>
+            </button>
+            <DateSimulator
+              currentDate={simulatedDate}
+              onDateChange={setSimulatedDate}
+              minDate={TRIP_START_DATE}
+              maxDate={TRIP_END_DATE}
+            />
+          </div>
         </div>
       </header>
 
@@ -58,7 +73,16 @@ const App: React.FC = () => {
         <p className="mb-2">Exploring Peru & Argentina • January 23 - February 15, 2026</p>
         <p className="font-semibold text-slate-500 italic">"Adventures are the best way to learn."</p>
       </footer>
+
+      {/* Journal Modal */}
+      {showJournal && (
+        <JournalView
+          onClose={() => setShowJournal(false)}
+          onNavigateToDate={setSimulatedDate}
+        />
+      )}
     </div>
+    </NotesProvider>
   );
 };
 

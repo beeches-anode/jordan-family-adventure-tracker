@@ -17,3 +17,12 @@ export interface TripState {
   location: string;
   currentActivity: string;
 }
+
+export interface Note {
+  id: string;
+  author: 'Harry' | 'Trent';
+  content: string;
+  date: string;        // ISO: "2026-01-25"
+  createdAt: Date;
+  location?: string;
+}
