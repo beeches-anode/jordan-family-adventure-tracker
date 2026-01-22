@@ -9,11 +9,11 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase-config';
-import { Note } from '../types';
+import { Note, Photo } from '../types';
 
 interface NotesContextType {
   notes: Note[];
-  addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string) => Promise<void>;
+  addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<void>;
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
   error: string | null;
@@ -55,6 +55,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
             createdAt: data.createdAt?.toDate() || new Date(),
             location: data.location,
             timezone: data.timezone,
+            photos: data.photos || [],
           };
         });
         setNotes(notesData);
@@ -75,7 +76,8 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     author: 'Harry' | 'Trent',
     content: string,
     date: string,
-    location?: string
+    location?: string,
+    photos?: Photo[]
   ): Promise<void> => {
     const notesRef = collection(db, 'notes');
     // Capture the user's current timezone
@@ -86,6 +88,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       date,
       location,
       timezone,
+      photos: photos || [],
       createdAt: serverTimestamp(),
     });
   };

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNotes } from '../context/NotesContext';
+import { Photo } from '../types';
 
 interface NotesListProps {
   date: string;
@@ -26,8 +27,77 @@ const getShortTimezone = (timezone: string): string => {
   return mapping[timezone] || timezone.split('/').pop()?.replace('_', ' ') || timezone;
 };
 
+interface PhotoGalleryProps {
+  photos: Photo[];
+  onPhotoClick: (photo: Photo) => void;
+}
+
+const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onPhotoClick }) => {
+  if (!photos || photos.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-3">
+      {photos.map((photo, index) => (
+        <button
+          key={index}
+          onClick={() => onPhotoClick(photo)}
+          className="relative overflow-hidden rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          <img
+            src={photo.url}
+            alt={`Photo ${index + 1}`}
+            className="w-24 h-24 object-cover"
+            loading="lazy"
+          />
+        </button>
+      ))}
+    </div>
+  );
+};
+
+interface LightboxProps {
+  photo: Photo;
+  onClose: () => void;
+}
+
+const Lightbox: React.FC<LightboxProps> = ({ photo, onClose }) => {
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+      <img
+        src={photo.url}
+        alt="Full size"
+        className="max-w-full max-h-full object-contain rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+};
+
 export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   const { getNotesForDate, loading, error } = useNotes();
+  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
   const notesForDate = getNotesForDate(date).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
   );
@@ -95,12 +165,25 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                 </div>
               </div>
             </div>
-            <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
-              {note.content}
-            </p>
+            {note.content && (
+              <p className="text-slate-700 whitespace-pre-wrap leading-relaxed">
+                {note.content}
+              </p>
+            )}
+            {note.photos && note.photos.length > 0 && (
+              <PhotoGallery
+                photos={note.photos}
+                onPhotoClick={(photo) => setLightboxPhoto(photo)}
+              />
+            )}
           </div>
         ))}
       </div>
+
+      {/* Lightbox */}
+      {lightboxPhoto && (
+        <Lightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+      )}
     </div>
   );
 };
