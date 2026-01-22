@@ -18,6 +18,13 @@ export interface TripState {
   currentActivity: string;
 }
 
+export interface Photo {
+  url: string;
+  path: string;        // Storage path for potential deletion
+  width: number;
+  height: number;
+}
+
 export interface Note {
   id: string;
   author: 'Harry' | 'Trent';
@@ -26,4 +33,5 @@ export interface Note {
   createdAt: Date;
   location?: string;
   timezone?: string;   // IANA timezone e.g., "America/Lima"
+  photos?: Photo[];    // Optional array of photos
 }
