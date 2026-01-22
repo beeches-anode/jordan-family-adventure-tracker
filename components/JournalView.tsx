@@ -25,21 +25,24 @@ const formatDateHeader = (dateStr: string): string => {
   });
 };
 
-const formatLocalTime = (date: Date): string => {
+const formatTimeInZone = (date: Date, timezone: string): string => {
   return date.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
+    timeZone: timezone,
   });
 };
 
-const formatBrisbaneTime = (date: Date): string => {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'Australia/Brisbane',
-  });
+const getShortTimezone = (timezone: string): string => {
+  const mapping: Record<string, string> = {
+    'America/Lima': 'Lima',
+    'America/Bogota': 'Lima',
+    'America/Argentina/Buenos_Aires': 'BA',
+    'America/Buenos_Aires': 'BA',
+    'Australia/Brisbane': 'BNE',
+  };
+  return mapping[timezone] || timezone.split('/').pop()?.replace('_', ' ') || timezone;
 };
 
 export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToDate }) => {
@@ -245,8 +248,12 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                             {note.author}
                           </span>
                           <div className="text-right text-xs">
-                            <div className="text-slate-500">{formatLocalTime(note.createdAt)} local</div>
-                            <div className="text-slate-400">{formatBrisbaneTime(note.createdAt)} BNE</div>
+                            <div className="text-slate-500">
+                              {formatTimeInZone(note.createdAt, note.timezone || 'UTC')} {getShortTimezone(note.timezone || 'UTC')}
+                            </div>
+                            <div className="text-slate-400">
+                              {formatTimeInZone(note.createdAt, 'Australia/Brisbane')} BNE
+                            </div>
                           </div>
                         </div>
                         <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">

@@ -25,4 +25,5 @@ export interface Note {
   date: string;        // ISO: "2026-01-25"
   createdAt: Date;
   location?: string;
+  timezone?: string;   // IANA timezone e.g., "America/Lima"
 }

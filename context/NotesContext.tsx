@@ -54,6 +54,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
             date: data.date,
             createdAt: data.createdAt?.toDate() || new Date(),
             location: data.location,
+            timezone: data.timezone,
           };
         });
         setNotes(notesData);
@@ -77,11 +78,14 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     location?: string
   ): Promise<void> => {
     const notesRef = collection(db, 'notes');
+    // Capture the user's current timezone
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     await addDoc(notesRef, {
       author,
       content,
       date,
       location,
+      timezone,
       createdAt: serverTimestamp(),
     });
   };
