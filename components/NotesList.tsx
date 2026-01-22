@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
+
+const SESSION_KEY = 'journal_authenticated';
 
 interface NotesListProps {
   date: string;
@@ -97,11 +99,32 @@ const Lightbox: React.FC<LightboxProps> = ({ photo, onClose }) => {
 };
 
 export const NotesList: React.FC<NotesListProps> = ({ date }) => {
-  const { getNotesForDate, loading, error } = useNotes();
+  const { getNotesForDate, deleteNote, loading, error } = useNotes();
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const notesForDate = getNotesForDate(date).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
   );
+
+  useEffect(() => {
+    const authenticated = sessionStorage.getItem(SESSION_KEY) === 'true';
+    setIsAuthenticated(authenticated);
+  }, []);
+
+  const handleDelete = async (noteId: string) => {
+    setDeletingNoteId(noteId);
+    try {
+      await deleteNote(noteId);
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+    } finally {
+      setDeletingNoteId(null);
+      setConfirmDeleteId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -157,13 +180,57 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
               >
                 {note.author}
               </span>
-              <div className="text-right text-xs">
-                <div className="text-slate-500">
-                  {formatTimeInZone(note.createdAt, note.timezone || 'UTC')} {getShortTimezone(note.timezone || 'UTC')}
+              <div className="flex items-center gap-3">
+                <div className="text-right text-xs">
+                  <div className="text-slate-500">
+                    {formatTimeInZone(note.createdAt, note.timezone || 'UTC')} {getShortTimezone(note.timezone || 'UTC')}
+                  </div>
+                  <div className="text-slate-400">
+                    {formatTimeInZone(note.createdAt, 'Australia/Brisbane')} Brisbane
+                  </div>
                 </div>
-                <div className="text-slate-400">
-                  {formatTimeInZone(note.createdAt, 'Australia/Brisbane')} Brisbane
-                </div>
+                {isAuthenticated && (
+                  <div className="relative">
+                    {confirmDeleteId === note.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(note.id)}
+                          disabled={deletingNoteId === note.id}
+                          className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {deletingNoteId === note.id ? '...' : 'Delete'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="px-2 py-1 text-xs bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(note.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                        title="Delete note"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             {note.content && (

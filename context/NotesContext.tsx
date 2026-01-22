@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import {
   collection,
   addDoc,
+  deleteDoc,
+  doc,
   query,
   orderBy,
   onSnapshot,
@@ -14,6 +16,7 @@ import { Note, Photo } from '../types';
 interface NotesContextType {
   notes: Note[];
   addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<void>;
+  deleteNote: (noteId: string) => Promise<void>;
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
   error: string | null;
@@ -93,12 +96,17 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     });
   };
 
+  const deleteNote = async (noteId: string): Promise<void> => {
+    const noteRef = doc(db, 'notes', noteId);
+    await deleteDoc(noteRef);
+  };
+
   const getNotesForDate = (date: string): Note[] => {
     return notes.filter((note) => note.date === date);
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, getNotesForDate, loading, error }}>
+    <NotesContext.Provider value={{ notes, addNote, deleteNote, getNotesForDate, loading, error }}>
       {children}
     </NotesContext.Provider>
   );
