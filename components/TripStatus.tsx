@@ -127,16 +127,18 @@ export const TripStatus: React.FC<TripStatusProps> = ({ currentDate, onDateChang
         lodging: 'Up America Plaza',
         transit: 'LA2261 & LA2375'
       };
-      if (d === 3) return { 
-        loc: 'Buenos Aires', 
-        act: 'Tour Welcome Meeting', 
-        icon: '🥩', 
+      if (d === 3) return {
+        loc: 'Buenos Aires',
+        act: 'Tour Welcome Meeting',
+        icon: '🥩',
         details: [
-          'Arrive in Buenos Aires (EZE) @ 2:50am local time (3:50pm, 3 Feb, Brisbane time)', 
+          'LA2375 departed Lima (LIM) @ 8:25pm last night (11:25am, 3 Feb, Brisbane time)',
+          'LA2375 lands Buenos Aires (EZE) @ 2:50am local time (3:50pm, 3 Feb, Brisbane time)',
           'G Adventures Welcome Meeting @ 6:00pm local time (7:00am, 4 Feb, Brisbane time)',
           'Introductory group dinner in the city'
         ],
-        lodging: 'Up America Plaza'
+        lodging: 'Up America Plaza',
+        transit: 'LA2375 (LIM -> EZE)'
       };
       if (d === 4) return { 
         loc: 'El Chalten', 
