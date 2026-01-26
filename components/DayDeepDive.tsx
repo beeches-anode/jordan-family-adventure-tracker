@@ -28,7 +28,18 @@ export const DayDeepDive: React.FC<DayDeepDiveProps> = ({ currentDate }) => {
 
     // January Content
     if (m === 0) {
-      if (d === 23 || d === 24) return {
+      if (d === 23) return {
+        title: "Day 1: En Route to South America",
+        summary: "The adventure begins! Trent and Harry are traveling from Brisbane to Lima today via Sydney and Santiago—a 30+ hour journey across the Pacific and the Andes.",
+        lat: -33.946, lng: 151.177, localZoom: 10,
+        sections: [
+          { heading: "Flight 1: BNE → SYD", content: "LA5901 departs Brisbane at 5:00am, arriving Sydney at 7:35am (1hr 35min). Operated by Qantas on a Boeing 737-800. Domestic terminals.", icon: "✈️" },
+          { heading: "Flight 2: SYD → SCL", content: "LA810 departs Sydney at 11:10am from Terminal 1 International, arriving Santiago at 9:50am local (12hr 40min). Boeing 787-9 Dreamliner with lunch and dinner service.", icon: "🌏" },
+          { heading: "Flight 3: SCL → LIM", content: "LA640 departs Santiago at 1:40pm from Terminal 2 INTL, arriving Lima at 3:30pm local (3hr 50min). Airbus A320. Final leg to Peru!", icon: "🛬" }
+        ],
+        funFact: "Today's journey covers over 14,000km—that's more than a third of the way around the Earth in a single day!"
+      };
+      if (d === 24) return {
         title: "The City of Kings: Lima",
         summary: "Trent and Harry are currently exploring Lima, Peru's vibrant coastal capital. Founded by Spanish conquistador Francisco Pizarro in 1535, it sits dramatically atop cliffs overlooking the Pacific.",
         lat: -12.115, lng: -77.042, localZoom: 13,
