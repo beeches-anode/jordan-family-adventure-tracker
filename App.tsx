@@ -4,6 +4,7 @@ import { TripStatus } from './components/TripStatus';
 import { DayDeepDive } from './components/DayDeepDive';
 import { DateSimulator } from './components/DateSimulator';
 import { JournalView } from './components/JournalView';
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 import { NotesProvider } from './context/NotesContext';
 import { WeatherProvider } from './context/WeatherContext';
 import { TRIP_START_DATE, TRIP_END_DATE } from './constants';
@@ -83,6 +84,9 @@ const App: React.FC = () => {
           onNavigateToDate={setSimulatedDate}
         />
       )}
+
+      {/* PWA Update Notification */}
+      <PWAUpdatePrompt />
     </div>
     </WeatherProvider>
     </NotesProvider>
