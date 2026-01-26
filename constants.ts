@@ -9,9 +9,9 @@ Booking ID: 7839815 | PNR: IVUWEP / MKYUUT
 
 ## Complete Flight Schedule (ALL DETAILS)
 - **Jan 23: Brisbane to Lima Transit**
-  * LA5901: BNE (5:00am) -> SYD (7:35am) [1h 35m]
-  * LA810: SYD (11:10am) -> SCL (10:00am) [12h 50m]
-  * LA640: SCL (1:40pm) -> LIM (3:30pm) [3h 50m]
+  * LA5901: BNE (5:00am) -> SYD (7:35am) [1h 35m] Boeing 737-800, operated by Qantas
+  * LA810: SYD (11:10am) -> SCL (9:50am) [12h 40m] Boeing 787-9, Terminal 1 Intl -> Terminal 2 Intl
+  * LA640: SCL (1:40pm) -> LIM (3:30pm) [3h 50m] Airbus A320, Terminal 2 Intl
   * Arrival in Lima: 3:30pm. Stay: Hampton by Hilton San Isidro.
 
 - **Jan 25: Lima to Cusco**
