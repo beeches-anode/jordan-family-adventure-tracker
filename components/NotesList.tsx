@@ -2,6 +2,30 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
+import { TRIP_START_DATE, TRIP_END_DATE } from '../constants';
+
+// Generate array of all trip dates for the edit dropdown
+const generateTripDates = (): { value: string; label: string }[] => {
+  const dates: { value: string; label: string }[] = [];
+  const current = new Date(TRIP_START_DATE);
+  const end = new Date(TRIP_END_DATE);
+
+  while (current <= end) {
+    const isoDate = current.toISOString().split('T')[0];
+    const dayNum = Math.floor((current.getTime() - TRIP_START_DATE.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const label = `Day ${dayNum} - ${current.toLocaleDateString('en-AU', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    })}`;
+    dates.push({ value: isoDate, label });
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+};
+
+const TRIP_DATES = generateTripDates();
 
 const SESSION_KEY = 'journal_authenticated';
 
@@ -99,11 +123,13 @@ const Lightbox: React.FC<LightboxProps> = ({ photo, onClose }) => {
 };
 
 export const NotesList: React.FC<NotesListProps> = ({ date }) => {
-  const { getNotesForDate, deleteNote, loading, error } = useNotes();
+  const { getNotesForDate, deleteNote, updateNoteDate, loading, error } = useNotes();
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [updatingNoteId, setUpdatingNoteId] = useState<string | null>(null);
 
   const notesForDate = getNotesForDate(date).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
@@ -123,6 +149,22 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
     } finally {
       setDeletingNoteId(null);
       setConfirmDeleteId(null);
+    }
+  };
+
+  const handleDateChange = async (noteId: string, newDate: string) => {
+    if (newDate === date) {
+      setEditingNoteId(null);
+      return;
+    }
+    setUpdatingNoteId(noteId);
+    try {
+      await updateNoteDate(noteId, newDate);
+    } catch (err) {
+      console.error('Failed to update note date:', err);
+    } finally {
+      setUpdatingNoteId(null);
+      setEditingNoteId(null);
     }
   };
 
@@ -190,8 +232,30 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                   </div>
                 </div>
                 {isAuthenticated && (
-                  <div className="relative">
-                    {confirmDeleteId === note.id ? (
+                  <div className="flex items-center gap-1">
+                    {editingNoteId === note.id ? (
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={date}
+                          onChange={(e) => handleDateChange(note.id, e.target.value)}
+                          disabled={updatingNoteId === note.id}
+                          className="text-xs px-2 py-1 rounded border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+                        >
+                          {TRIP_DATES.map((d) => (
+                            <option key={d.value} value={d.value}>
+                              {d.label}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => setEditingNoteId(null)}
+                          disabled={updatingNoteId === note.id}
+                          className="px-2 py-1 text-xs bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : confirmDeleteId === note.id ? (
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleDelete(note.id)}
@@ -208,26 +272,48 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                         </button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => setConfirmDeleteId(note.id)}
-                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
-                        title="Delete note"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                      <>
+                        <button
+                          onClick={() => setEditingNoteId(note.id)}
+                          className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded transition-colors"
+                          title="Change date"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(note.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="Delete note"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
