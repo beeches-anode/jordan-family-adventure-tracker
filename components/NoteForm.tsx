@@ -2,9 +2,34 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
 import { uploadMultiplePhotos, UploadProgress } from '../utils/imageUpload';
+import { getEarliestPhotoDate } from '../utils/exifReader';
+import { TRIP_START_DATE, TRIP_END_DATE } from '../constants';
 
 const JOURNAL_PASSWORD = 'jordan2024';
 const SESSION_KEY = 'journal_authenticated';
+
+// Generate array of all trip dates
+const generateTripDates = (): { value: string; label: string }[] => {
+  const dates: { value: string; label: string }[] = [];
+  const current = new Date(TRIP_START_DATE);
+  const end = new Date(TRIP_END_DATE);
+
+  while (current <= end) {
+    const isoDate = current.toISOString().split('T')[0];
+    const dayNum = Math.floor((current.getTime() - TRIP_START_DATE.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const label = `Day ${dayNum} - ${current.toLocaleDateString('en-AU', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    })}`;
+    dates.push({ value: isoDate, label });
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+};
+
+const TRIP_DATES = generateTripDates();
 
 interface SelectedPhoto {
   file: File;
@@ -29,8 +54,17 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedPhotos, setSelectedPhotos] = useState<SelectedPhoto[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [tripDate, setTripDate] = useState(date); // The trip day being described
+  const [exifDetected, setExifDetected] = useState<string | null>(null); // Show EXIF detection message
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Update tripDate if the viewing date changes (user navigates to different day)
+  useEffect(() => {
+    if (selectedPhotos.length === 0) {
+      setTripDate(date);
+    }
+  }, [date, selectedPhotos.length]);
 
   const insertFormatting = (prefix: string, suffix: string = prefix) => {
     const textarea = textareaRef.current;
@@ -94,11 +128,12 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
     }
   };
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newPhotos: SelectedPhoto[] = Array.from(files).map((file) => ({
+    const fileArray = Array.from(files);
+    const newPhotos: SelectedPhoto[] = fileArray.map((file) => ({
       file,
       preview: URL.createObjectURL(file),
       status: 'compressing' as const,
@@ -107,6 +142,32 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
 
     setSelectedPhotos((prev) => [...prev, ...newPhotos]);
     setUploadError(null);
+
+    // Try to extract EXIF date from photos
+    try {
+      const exifDate = await getEarliestPhotoDate(fileArray);
+      if (exifDate) {
+        // Check if the detected date falls within the trip dates
+        const tripDateObj = TRIP_DATES.find(d => d.value === exifDate.dateString);
+        if (tripDateObj) {
+          setTripDate(exifDate.dateString);
+          setExifDetected(`Photo date detected: ${tripDateObj.label}`);
+          setTimeout(() => setExifDetected(null), 5000);
+        } else {
+          // Date is outside trip range, just notify
+          const detectedDate = exifDate.date.toLocaleDateString('en-AU', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          });
+          setExifDetected(`Photo from ${detectedDate} (outside trip dates)`);
+          setTimeout(() => setExifDetected(null), 5000);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not read EXIF data:', err);
+    }
 
     // Reset the input so the same file can be selected again
     if (fileInputRef.current) {
@@ -147,7 +208,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
         uploadedPhotos = await uploadMultiplePhotos(
           files,
           author,
-          date,
+          tripDate, // Use the selected trip date for organizing photos
           (index, status) => {
             setSelectedPhotos((prev) => {
               const updated = [...prev];
@@ -164,13 +225,15 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
         );
       }
 
-      // Add note with photos
-      await addNote(author, content.trim(), date, location, uploadedPhotos);
+      // Add note with photos - uses tripDate (the day being described)
+      await addNote(author, content.trim(), tripDate, location, uploadedPhotos);
 
       // Cleanup
       selectedPhotos.forEach((photo) => URL.revokeObjectURL(photo.preview));
       setContent('');
       setSelectedPhotos([]);
+      setTripDate(date); // Reset to current viewing date
+      setExifDetected(null);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
@@ -254,6 +317,37 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
               Trent
             </button>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-600 mb-2">
+            Which trip day is this about?
+          </label>
+          <select
+            value={tripDate}
+            onChange={(e) => {
+              setTripDate(e.target.value);
+              setExifDetected(null);
+            }}
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none cursor-pointer"
+          >
+            {TRIP_DATES.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+          {exifDetected && (
+            <p className="text-emerald-600 text-sm mt-2 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {exifDetected}
+            </p>
+          )}
+          <p className="text-slate-400 text-xs mt-1">
+            Photos will appear on this day in the journal
+          </p>
         </div>
 
         <div>
