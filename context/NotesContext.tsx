@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   orderBy,
@@ -17,6 +18,7 @@ interface NotesContextType {
   notes: Note[];
   addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<void>;
   deleteNote: (noteId: string) => Promise<void>;
+  updateNoteDate: (noteId: string, newDate: string) => Promise<void>;
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
   error: string | null;
@@ -101,12 +103,17 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     await deleteDoc(noteRef);
   };
 
+  const updateNoteDate = async (noteId: string, newDate: string): Promise<void> => {
+    const noteRef = doc(db, 'notes', noteId);
+    await updateDoc(noteRef, { date: newDate });
+  };
+
   const getNotesForDate = (date: string): Note[] => {
     return notes.filter((note) => note.date === date);
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, deleteNote, getNotesForDate, loading, error }}>
+    <NotesContext.Provider value={{ notes, addNote, deleteNote, updateNoteDate, getNotesForDate, loading, error }}>
       {children}
     </NotesContext.Provider>
   );
