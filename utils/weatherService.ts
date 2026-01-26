@@ -18,9 +18,13 @@ export const getLocationForDate = (date: Date): LocationInfo => {
   if (m === 0) {
     if (d === 23 || d === 24) return { lat: -12.115, lng: -77.042, location: 'Lima, Peru', timezone: 'America/Lima' };
     if (d === 25) return { lat: -13.522, lng: -71.967, location: 'Cusco, Peru', timezone: 'America/Lima' };
-    if (d === 26) return { lat: -13.228, lng: -72.308, location: 'Inca Trail, Peru', timezone: 'America/Lima' };
-    if (d === 27) return { lat: -13.242, lng: -72.485, location: 'Inca Trail, Peru', timezone: 'America/Lima' };
-    if (d === 28) return { lat: -13.208, lng: -72.502, location: 'Inca Trail, Peru', timezone: 'America/Lima' };
+    // Inca Trail Day 1: Km 82 (2650m) → Llaqtapata → Wayllabamba (3000m)
+    if (d === 26) return { lat: -13.250, lng: -72.458, location: 'Wayllabamba, Inca Trail', timezone: 'America/Lima' };
+    // Inca Trail Day 2: Wayllabamba → Dead Woman's Pass (4215m) → Pacaymayo
+    if (d === 27) return { lat: -13.208, lng: -72.492, location: 'Warmiwañusqa Pass, Inca Trail', timezone: 'America/Lima' };
+    // Inca Trail Day 3: Runkurakay → Phuyupatamarka (3600m) → Wiñaywayna (2650m)
+    if (d === 28) return { lat: -13.175, lng: -72.525, location: 'Phuyupatamarka, Inca Trail', timezone: 'America/Lima' };
+    // Inca Trail Day 4: Wiñaywayna → Inti Punku (Sun Gate) → Machu Picchu (2430m)
     if (d === 29) return { lat: -13.163, lng: -72.545, location: 'Machu Picchu, Peru', timezone: 'America/Lima' };
     if (d === 30) return { lat: -12.593, lng: -69.186, location: 'Puerto Maldonado, Peru', timezone: 'America/Lima' };
     if (d === 31) return { lat: -12.8, lng: -69.3, location: 'Amazon Jungle, Peru', timezone: 'America/Lima' };
