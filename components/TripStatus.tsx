@@ -273,8 +273,9 @@ export const TripStatus: React.FC<TripStatusProps> = ({ currentDate, onDateChang
     };
   };
 
-  const currentDayOffset = Math.ceil((currentDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
-  const totalDays = Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const stripTime = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const currentDayOffset = Math.round((stripTime(currentDate).getTime() - stripTime(minDate).getTime()) / (1000 * 60 * 60 * 24));
+  const totalDays = Math.round((stripTime(maxDate).getTime() - stripTime(minDate).getTime()) / (1000 * 60 * 60 * 24)) + 1;
   const currentDayNumber = currentDayOffset + 1;
 
   const handlePrevDay = () => {

@@ -25,8 +25,9 @@ export const DateSimulator: React.FC<DateSimulatorProps> = ({
     onDateChange(newDate);
   };
 
-  const totalDaysDiff = Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
-  const currentDayOffset = Math.ceil((currentDate.getTime() - minDate.getTime()) / (1000 * 60 * 60 * 24));
+  const stripTime = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const totalDaysDiff = Math.round((stripTime(maxDate).getTime() - stripTime(minDate).getTime()) / (1000 * 60 * 60 * 24));
+  const currentDayOffset = Math.round((stripTime(currentDate).getTime() - stripTime(minDate).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <div className="bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-2xl flex items-center gap-6 border border-white/10 shadow-inner group">
