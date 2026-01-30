@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import {
   collection,
   addDoc,
@@ -8,6 +8,7 @@ import {
   query,
   orderBy,
   onSnapshot,
+  getDocsFromServer,
   Timestamp,
   serverTimestamp
 } from 'firebase/firestore';
@@ -22,6 +23,10 @@ interface NotesContextType {
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
   error: string | null;
+  refreshNotes: () => Promise<void>;
+  lastSynced: Date | null;
+  isFromCache: boolean;
+  isRefreshing: boolean;
 }
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
@@ -42,6 +47,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [isFromCache, setIsFromCache] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const lastSyncedRef = useRef<Date | null>(null);
 
   useEffect(() => {
     const notesRef = collection(db, 'notes');
@@ -49,6 +58,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
     const unsubscribe = onSnapshot(
       q,
+      { includeMetadataChanges: true },
       (snapshot) => {
         const notesData: Note[] = snapshot.docs.map((doc) => {
           const data = doc.data();
@@ -66,6 +76,14 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
         setNotes(notesData);
         setLoading(false);
         setError(null);
+
+        const fromCache = snapshot.metadata.fromCache;
+        setIsFromCache(fromCache);
+        if (!fromCache) {
+          const now = new Date();
+          setLastSynced(now);
+          lastSyncedRef.current = now;
+        }
       },
       (err) => {
         console.error('Error fetching notes:', err);
@@ -76,6 +94,56 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  const refreshNotes = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const notesRef = collection(db, 'notes');
+      const q = query(notesRef, orderBy('createdAt', 'desc'));
+      const snapshot = await getDocsFromServer(q);
+      const notesData: Note[] = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          author: data.author,
+          content: data.content,
+          date: data.date,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          location: data.location,
+          timezone: data.timezone,
+          photos: data.photos || [],
+        };
+      });
+      setNotes(notesData);
+      const now = new Date();
+      setLastSynced(now);
+      lastSyncedRef.current = now;
+      setIsFromCache(false);
+      setError(null);
+    } catch (err) {
+      console.error('Error refreshing notes from server:', err);
+      setError('Failed to refresh from server');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  // Auto-refresh when tab regains focus (with 30s throttle)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = Date.now();
+        const last = lastSyncedRef.current;
+        if (last && (now - last.getTime()) < 30_000) return;
+        refreshNotes();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [refreshNotes]);
 
   const addNote = async (
     author: 'Harry' | 'Trent',
@@ -113,7 +181,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNotesForDate, loading, error }}>
+    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNotesForDate, loading, error, refreshNotes, lastSynced, isFromCache, isRefreshing }}>
       {children}
     </NotesContext.Provider>
   );

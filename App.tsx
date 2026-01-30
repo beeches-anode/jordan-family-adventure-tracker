@@ -5,6 +5,7 @@ import { DayDeepDive } from './components/DayDeepDive';
 import { DateSimulator } from './components/DateSimulator';
 import { JournalView } from './components/JournalView';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { SyncStatusBar } from './components/SyncStatusBar';
 import { NotesProvider } from './context/NotesContext';
 import { WeatherProvider } from './context/WeatherContext';
 import { TRIP_START_DATE, TRIP_END_DATE } from './constants';
@@ -35,6 +36,7 @@ const App: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-4">
+            <SyncStatusBar />
             <button
               onClick={() => setShowJournal(true)}
               className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition-colors border border-white/20"
