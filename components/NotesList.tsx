@@ -112,6 +112,10 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   useEffect(() => {
     const authenticated = sessionStorage.getItem(SESSION_KEY) === 'true';
     setIsAuthenticated(authenticated);
+
+    const handleAuth = () => setIsAuthenticated(true);
+    window.addEventListener('journal-authenticated', handleAuth);
+    return () => window.removeEventListener('journal-authenticated', handleAuth);
   }, []);
 
   const handleDelete = async (noteId: string) => {
