@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   orderBy,
@@ -16,6 +17,7 @@ import { Note, Photo } from '../types';
 interface NotesContextType {
   notes: Note[];
   addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<void>;
+  updateNote: (noteId: string, updates: { content?: string; date?: string }) => Promise<void>;
   deleteNote: (noteId: string) => Promise<void>;
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
@@ -96,6 +98,11 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     });
   };
 
+  const updateNote = async (noteId: string, updates: { content?: string; date?: string }): Promise<void> => {
+    const noteRef = doc(db, 'notes', noteId);
+    await updateDoc(noteRef, updates);
+  };
+
   const deleteNote = async (noteId: string): Promise<void> => {
     const noteRef = doc(db, 'notes', noteId);
     await deleteDoc(noteRef);
@@ -106,7 +113,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, deleteNote, getNotesForDate, loading, error }}>
+    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNotesForDate, loading, error }}>
       {children}
     </NotesContext.Provider>
   );
