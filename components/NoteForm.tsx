@@ -123,6 +123,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
       sessionStorage.setItem(SESSION_KEY, 'true');
       setIsAuthenticated(true);
       setPasswordError(false);
+      window.dispatchEvent(new Event('journal-authenticated'));
     } else {
       setPasswordError(true);
     }
