@@ -1,6 +1,16 @@
 
-export const TRIP_START_DATE = new Date('2026-01-23');
-export const TRIP_END_DATE = new Date('2026-02-15');
+// Use component constructor (local midnight) instead of ISO string (UTC midnight)
+// to avoid timezone bugs where getDate() and toISOString() disagree
+export const TRIP_START_DATE = new Date(2026, 0, 23);
+export const TRIP_END_DATE = new Date(2026, 1, 15);
+
+/** Formats a Date as "YYYY-MM-DD" using local time (not UTC). */
+export function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export const KNOWLEDGE_BASE = `
 # Jordan Family South America Trip 2026 - Master Travel Documents
