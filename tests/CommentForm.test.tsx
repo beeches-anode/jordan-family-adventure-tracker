@@ -125,14 +125,23 @@ describe('CommentForm', () => {
       expect(screen.getByTestId('comment-submit-btn')).toBeDisabled();
     });
 
-    it('submits on Enter key press', async () => {
+    it('does not submit on Enter key press (allows new lines)', async () => {
       const user = userEvent.setup();
       const onSubmit = vi.fn(() => Promise.resolve());
       render(<CommentForm onSubmit={onSubmit} />);
 
-      await user.type(screen.getByTestId('comment-input'), 'Enter test{Enter}');
+      await user.type(screen.getByTestId('comment-input'), 'Line one{Enter}Line two');
 
-      expect(onSubmit).toHaveBeenCalledWith('Grandma', 'Enter test');
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(screen.getByTestId('comment-input')).toHaveValue('Line one\nLine two');
+    });
+
+    it('renders a textarea instead of a single-line input', () => {
+      render(<CommentForm onSubmit={vi.fn()} />);
+
+      const textarea = screen.getByTestId('comment-input');
+      expect(textarea.tagName).toBe('TEXTAREA');
+      expect(textarea).toHaveAttribute('rows', '3');
     });
 
     it('shows change name button and allows name change', async () => {

@@ -108,7 +108,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, isJournalOwne
             </div>
           )}
         </div>
-        <p className="text-sm text-slate-600 mt-0.5 break-words" data-testid="comment-content">
+        <p className="text-sm text-slate-600 mt-0.5 break-words whitespace-pre-wrap" data-testid="comment-content">
           {comment.content}
         </p>
       </div>
