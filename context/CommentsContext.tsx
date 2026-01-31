@@ -76,6 +76,17 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   }, []);
 
   const addComment = useCallback(async (noteId: string, author: string, content: string): Promise<void> => {
+    // Optimistically add to local state so UI updates immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: tempId,
+      noteId,
+      author,
+      content,
+      createdAt: new Date(),
+    };
+    setComments(prev => [...prev, optimisticComment]);
+
     const commentsRef = collection(db, 'comments');
     const writePromise = addDoc(commentsRef, {
       noteId,
@@ -92,6 +103,9 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   }, []);
 
   const deleteComment = useCallback(async (commentId: string): Promise<void> => {
+    // Optimistically remove from local state so UI updates immediately
+    setComments(prev => prev.filter(c => c.id !== commentId));
+
     const commentRef = doc(db, 'comments', commentId);
     const writePromise = deleteDoc(commentRef);
     writePromise.catch(() => {});
@@ -102,6 +116,9 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   }, []);
 
   const updateComment = useCallback(async (commentId: string, content: string): Promise<void> => {
+    // Optimistically update local state so UI updates immediately
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, content } : c));
+
     const commentRef = doc(db, 'comments', commentId);
     const writePromise = updateDoc(commentRef, { content });
     writePromise.catch(() => {});
