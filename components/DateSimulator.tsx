@@ -30,8 +30,8 @@ export const DateSimulator: React.FC<DateSimulatorProps> = ({
   const currentDayOffset = Math.round((stripTime(currentDate).getTime() - stripTime(minDate).getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="bg-white/10 backdrop-blur-md px-5 py-2.5 rounded-2xl flex items-center gap-6 border border-white/10 shadow-inner group">
-      <div className="flex items-center gap-6 border-r border-white/20 pr-6">
+    <div className="bg-white/10 backdrop-blur-md px-3 sm:px-5 py-2 sm:py-2.5 rounded-2xl flex items-center gap-3 sm:gap-6 border border-white/10 shadow-inner group">
+      <div className="flex items-center gap-3 sm:gap-6 border-r border-white/20 pr-3 sm:pr-6">
         <div className="text-right">
           <p className="text-[10px] uppercase font-bold tracking-tighter text-indigo-300">Local Date</p>
           <p className="font-bold text-white whitespace-nowrap tabular-nums">{formatDate(currentDate)}</p>
