@@ -4,6 +4,15 @@
 export const TRIP_START_DATE = new Date(2026, 0, 23);
 export const TRIP_END_DATE = new Date(2026, 1, 15);
 
+/** Parses a "YYYY-MM-DD" string as local midnight (not UTC).
+ *  This is the inverse of toLocalDateString and avoids the timezone bug where
+ *  new Date("2026-01-31") creates UTC midnight, which shifts to the previous
+ *  day in timezones west of UTC. */
+export function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 /** Formats a Date as "YYYY-MM-DD" using local time (not UTC). */
 export function toLocalDateString(date: Date): string {
   const y = date.getFullYear();
