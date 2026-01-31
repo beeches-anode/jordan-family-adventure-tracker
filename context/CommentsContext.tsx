@@ -76,6 +76,17 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   }, []);
 
   const addComment = useCallback(async (noteId: string, author: string, content: string): Promise<void> => {
+    // Optimistically add to local state so UI updates immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticComment: Comment = {
+      id: tempId,
+      noteId,
+      author,
+      content,
+      createdAt: new Date(),
+    };
+    setComments(prev => [...prev, optimisticComment]);
+
     const commentsRef = collection(db, 'comments');
     const writePromise = addDoc(commentsRef, {
       noteId,
