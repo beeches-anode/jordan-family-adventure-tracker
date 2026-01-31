@@ -155,7 +155,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     const notesRef = collection(db, 'notes');
     // Capture the user's current timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    await addDoc(notesRef, {
+    const writePromise = addDoc(notesRef, {
       author,
       content,
       date,
@@ -164,16 +164,33 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       photos: photos || [],
       createdAt: serverTimestamp(),
     });
+    // With persistentLocalCache the write is already committed locally.
+    // Race against a timeout so the UI isn't blocked waiting for server confirmation.
+    writePromise.catch(() => {});
+    await Promise.race([
+      writePromise,
+      new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
+    ]);
   };
 
   const updateNote = async (noteId: string, updates: { content?: string; date?: string }): Promise<void> => {
     const noteRef = doc(db, 'notes', noteId);
-    await updateDoc(noteRef, updates);
+    const writePromise = updateDoc(noteRef, updates);
+    writePromise.catch(() => {});
+    await Promise.race([
+      writePromise,
+      new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
+    ]);
   };
 
   const deleteNote = async (noteId: string): Promise<void> => {
     const noteRef = doc(db, 'notes', noteId);
-    await deleteDoc(noteRef);
+    const writePromise = deleteDoc(noteRef);
+    writePromise.catch(() => {});
+    await Promise.race([
+      writePromise,
+      new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
+    ]);
   };
 
   const getNotesForDate = (date: string): Note[] => {

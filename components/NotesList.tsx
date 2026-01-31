@@ -92,6 +92,7 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   const [editContent, setEditContent] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const notesForDate = getNotesForDate(date).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
@@ -128,18 +129,22 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   const handleEditSave = async () => {
     if (!editingNoteId) return;
     setEditSaving(true);
+    setEditError(null);
     try {
       await updateNote(editingNoteId, { content: editContent, date: editDate });
-    } catch (err) {
-      console.error('Failed to update note:', err);
-    } finally {
       setEditSaving(false);
       setEditingNoteId(null);
+    } catch (err) {
+      console.error('Failed to update note:', err);
+      setEditSaving(false);
+      setEditError('Failed to save. You can retry or cancel.');
     }
   };
 
   const handleEditCancel = () => {
     setEditingNoteId(null);
+    setEditSaving(false);
+    setEditError(null);
   };
 
   if (loading) {
@@ -309,6 +314,9 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                   >
                     Cancel
                   </button>
+                  {editError && (
+                    <span className="text-xs text-red-600">{editError}</span>
+                  )}
                   {editDate !== date && (
                     <span className="text-xs text-amber-600">
                       Note will move to {TRIP_DATES.find(d => d.value === editDate)?.label}
