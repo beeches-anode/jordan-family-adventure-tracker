@@ -1,5 +1,5 @@
 import { DayWeather } from '../types';
-import { TRIP_START_DATE, TRIP_END_DATE, toLocalDateString } from '../constants';
+import { TRIP_START_DATE, TRIP_END_DATE, toLocalDateString, parseLocalDate } from '../constants';
 
 // Location data for each day of the trip
 // Derived from DayDeepDive.tsx coordinates
@@ -113,7 +113,7 @@ export const shouldRefreshWeather = (
   // Historical data never needs refresh
   if (weather.isHistorical) return false;
 
-  const weatherDate = new Date(weather.date);
+  const weatherDate = parseLocalDate(weather.date);
   const hoursSinceFetch = (Date.now() - weather.fetchedAt.getTime()) / (1000 * 60 * 60);
 
   // Normalize dates for comparison (remove time component)
@@ -222,7 +222,7 @@ export const fetchWeatherForDate = async (
   date: string,
   currentDate: Date
 ): Promise<DayWeather | null> => {
-  const dateObj = new Date(date);
+  const dateObj = parseLocalDate(date);
   const locationInfo = getLocationForDate(dateObj);
 
   // Skip "In Transit" day - no meaningful weather to show

@@ -15,6 +15,7 @@ import {
   isDateInPast,
   getLocationForDate,
 } from '../utils/weatherService';
+import { parseLocalDate } from '../constants';
 
 interface WeatherContextType {
   weather: Map<string, DayWeather>;
@@ -130,7 +131,7 @@ export const WeatherProvider: React.FC<WeatherProviderProps> = ({ children, curr
 
     for (const date of tripDates) {
       // Skip "In Transit" day
-      const locationInfo = getLocationForDate(new Date(date));
+      const locationInfo = getLocationForDate(parseLocalDate(date));
       if (locationInfo.location === 'In Transit') continue;
 
       const existingWeather = weather.get(date);

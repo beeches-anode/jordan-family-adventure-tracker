@@ -5,6 +5,7 @@ import { useComments } from '../context/CommentsContext';
 import { Note, Photo } from '../types';
 import { PhotoLightbox } from './PhotoLightbox';
 import { CommentItem } from './CommentItem';
+import { parseLocalDate } from '../constants';
 
 interface JournalViewProps {
   onClose: () => void;
@@ -20,7 +21,7 @@ interface GroupedNotes {
 }
 
 const formatDateHeader = (dateStr: string): string => {
-  const date = new Date(dateStr);
+  const date = parseLocalDate(dateStr);
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -102,7 +103,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
   }, [filteredNotes]);
 
   const handleDateClick = (dateStr: string) => {
-    const date = new Date(dateStr);
+    const date = parseLocalDate(dateStr);
     onNavigateToDate(date);
     onClose();
   };
