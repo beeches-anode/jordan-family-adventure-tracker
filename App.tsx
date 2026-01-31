@@ -21,7 +21,7 @@ const App: React.FC = () => {
     <WeatherProvider currentDate={simulatedDate}>
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
-      <header className="bg-indigo-800 text-white py-6 px-4 shadow-xl sticky top-0 z-50">
+      <header className="bg-indigo-800 text-white py-4 sm:py-6 px-4 shadow-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-sm border border-white/20">
@@ -35,7 +35,7 @@ const App: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <SyncStatusBar />
             <button
               onClick={() => setShowJournal(true)}
@@ -46,12 +46,14 @@ const App: React.FC = () => {
               </svg>
               <span className="hidden sm:inline">Journal</span>
             </button>
-            <DateSimulator
-              currentDate={simulatedDate}
-              onDateChange={setSimulatedDate}
-              minDate={TRIP_START_DATE}
-              maxDate={TRIP_END_DATE}
-            />
+            <div className="w-full sm:w-auto">
+              <DateSimulator
+                currentDate={simulatedDate}
+                onDateChange={setSimulatedDate}
+                minDate={TRIP_START_DATE}
+                maxDate={TRIP_END_DATE}
+              />
+            </div>
           </div>
         </div>
       </header>
