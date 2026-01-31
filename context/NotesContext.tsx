@@ -56,6 +56,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const [hasPendingWrites, setHasPendingWrites] = useState(false);
   const lastSyncedRef = useRef<Date | null>(null);
   const visibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Grace period: after a successful getDocsFromServer, suppress onSnapshot from
+  // overwriting isFromCache back to true (race condition on iOS where the
+  // real-time WebSocket stays disconnected).
+  const serverFetchSucceededAt = useRef<number>(0);
 
   useEffect(() => {
     const notesRef = collection(db, 'notes');
@@ -80,14 +84,25 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
         });
         setNotes(notesData);
         setLoading(false);
-        setHasPendingWrites(snapshot.metadata.hasPendingWrites);
-
         const fromCache = snapshot.metadata.fromCache;
-        setIsFromCache(fromCache);
-        if (!fromCache) {
+        const recentServerFetch = Date.now() - serverFetchSucceededAt.current < 5_000;
+
+        if (fromCache) {
+          // Only revert to cache status if we haven't just fetched from server.
+          // This prevents the listener (whose WebSocket may be disconnected on
+          // iOS) from immediately overwriting a successful manual refresh.
+          if (!recentServerFetch) {
+            setIsFromCache(true);
+            setHasPendingWrites(snapshot.metadata.hasPendingWrites);
+          }
+        } else {
+          // Server-confirmed data — always trust this.
+          setIsFromCache(false);
+          setHasPendingWrites(snapshot.metadata.hasPendingWrites);
           const now = new Date();
           setLastSynced(now);
           lastSyncedRef.current = now;
+          serverFetchSucceededAt.current = Date.now();
           setError(null);
           setRefreshError(null);
         }
@@ -145,7 +160,9 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       const now = new Date();
       setLastSynced(now);
       lastSyncedRef.current = now;
+      serverFetchSucceededAt.current = Date.now();
       setIsFromCache(false);
+      setHasPendingWrites(false);
       setRefreshError(null);
     } catch (err) {
       console.error('Error refreshing notes from server:', err);

@@ -30,7 +30,7 @@ export const SyncStatusBar: React.FC = () => {
   if (refreshError) {
     dotClass = 'bg-red-400';
     statusLabel = 'Refresh failed';
-  } else if (hasPendingWrites) {
+  } else if (isFromCache && hasPendingWrites) {
     dotClass = 'bg-amber-400 animate-pulse';
     statusLabel = 'Syncing changes...';
   } else if (isFromCache) {
