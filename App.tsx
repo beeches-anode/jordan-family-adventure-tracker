@@ -7,6 +7,7 @@ import { JournalView } from './components/JournalView';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 import { SyncStatusBar } from './components/SyncStatusBar';
 import { NotesProvider } from './context/NotesContext';
+import { CommentsProvider } from './context/CommentsContext';
 import { WeatherProvider } from './context/WeatherContext';
 import { TRIP_START_DATE, TRIP_END_DATE } from './constants';
 
@@ -18,6 +19,7 @@ const App: React.FC = () => {
 
   return (
     <NotesProvider>
+    <CommentsProvider>
     <WeatherProvider currentDate={simulatedDate}>
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
@@ -93,6 +95,7 @@ const App: React.FC = () => {
       <PWAUpdatePrompt />
     </div>
     </WeatherProvider>
+    </CommentsProvider>
     </NotesProvider>
   );
 };

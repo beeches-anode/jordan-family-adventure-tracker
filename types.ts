@@ -36,6 +36,14 @@ export interface Note {
   photos?: Photo[];    // Optional array of photos
 }
 
+export interface Comment {
+  id: string;
+  noteId: string;
+  author: string;        // family member name (free text)
+  content: string;
+  createdAt: Date;
+}
+
 export interface DayWeather {
   id?: string;
   date: string;                    // ISO: "2026-01-25"
