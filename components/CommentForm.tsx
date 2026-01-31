@@ -29,7 +29,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({ onSubmit }) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [changingName, setChangingName] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Listen for comment auth events from other components
   useEffect(() => {
@@ -75,13 +75,6 @@ export const CommentForm: React.FC<CommentFormProps> = ({ onSubmit }) => {
       console.error('Failed to post comment:', err);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
     }
   };
 
@@ -183,34 +176,35 @@ export const CommentForm: React.FC<CommentFormProps> = ({ onSubmit }) => {
       </div>
 
       {/* Comment input */}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          ref={inputRef}
-          type="text"
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <textarea
+          ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          onKeyDown={handleKeyDown}
           placeholder="Add a comment..."
+          rows={3}
           disabled={isSubmitting}
-          className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50"
+          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:opacity-50 resize-none"
           data-testid="comment-input"
         />
-        <button
-          type="submit"
-          disabled={!content.trim() || isSubmitting}
-          className="px-3 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
-          data-testid="comment-submit-btn"
-        >
-          {isSubmitting ? (
-            <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
-          ) : showSuccess ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            'Post'
-          )}
-        </button>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={!content.trim() || isSubmitting}
+            className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+            data-testid="comment-submit-btn"
+          >
+            {isSubmitting ? (
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
+            ) : showSuccess ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              'Post'
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
