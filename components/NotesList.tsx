@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
 import { PhotoLightbox } from './PhotoLightbox';
+import { CommentSection } from './CommentSection';
 import { TRIP_START_DATE, TRIP_END_DATE, toLocalDateString } from '../constants';
 
 const SESSION_KEY = 'journal_authenticated';
@@ -350,6 +351,8 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                 )}
               </>
             )}
+            {/* Comments */}
+            <CommentSection noteId={note.id} isJournalOwner={isAuthenticated} />
           </div>
         ))}
       </div>
