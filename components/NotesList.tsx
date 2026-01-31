@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
 import { PhotoLightbox } from './PhotoLightbox';
-import { TRIP_START_DATE, TRIP_END_DATE } from '../constants';
+import { TRIP_START_DATE, TRIP_END_DATE, toLocalDateString } from '../constants';
 
 const SESSION_KEY = 'journal_authenticated';
 
@@ -13,7 +13,7 @@ const generateTripDates = (): { value: string; label: string }[] => {
   const end = new Date(TRIP_END_DATE);
 
   while (current <= end) {
-    const isoDate = current.toISOString().split('T')[0];
+    const isoDate = toLocalDateString(current);
     const dayNum = Math.floor((current.getTime() - TRIP_START_DATE.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     const label = `Day ${dayNum} - ${current.toLocaleDateString('en-AU', {
       weekday: 'short',

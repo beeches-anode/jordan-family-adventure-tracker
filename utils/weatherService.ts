@@ -1,4 +1,5 @@
 import { DayWeather } from '../types';
+import { TRIP_START_DATE, TRIP_END_DATE, toLocalDateString } from '../constants';
 
 // Location data for each day of the trip
 // Derived from DayDeepDive.tsx coordinates
@@ -117,7 +118,7 @@ export const shouldRefreshWeather = (
 
   // Normalize dates for comparison (remove time component)
   const weatherDateStr = weather.date;
-  const currentDateStr = currentDate.toISOString().split('T')[0];
+  const currentDateStr = toLocalDateString(currentDate);
 
   // Past days: should not refresh (but mark as historical if not already)
   if (weatherDateStr < currentDateStr) return false;
@@ -133,7 +134,7 @@ export const shouldRefreshWeather = (
 
 // Check if a date is in the past relative to current date
 export const isDateInPast = (dateStr: string, currentDate: Date): boolean => {
-  const currentDateStr = currentDate.toISOString().split('T')[0];
+  const currentDateStr = toLocalDateString(currentDate);
   return dateStr < currentDateStr;
 };
 
@@ -269,12 +270,9 @@ export const fetchWeatherForDate = async (
 // Generate all trip dates
 export const getAllTripDates = (): string[] => {
   const dates: string[] = [];
-  const start = new Date('2026-01-23');
-  const end = new Date('2026-02-15');
-
-  const current = new Date(start);
-  while (current <= end) {
-    dates.push(current.toISOString().split('T')[0]);
+  const current = new Date(TRIP_START_DATE);
+  while (current <= TRIP_END_DATE) {
+    dates.push(toLocalDateString(current));
     current.setDate(current.getDate() + 1);
   }
 

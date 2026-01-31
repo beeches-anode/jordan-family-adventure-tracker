@@ -2,6 +2,7 @@
 import React from 'react';
 import { NotesList } from './NotesList';
 import { NoteForm } from './NoteForm';
+import { toLocalDateString } from '../constants';
 
 interface DayDeepDiveProps {
   currentDate: Date;
@@ -296,8 +297,8 @@ export const DayDeepDive: React.FC<DayDeepDiveProps> = ({ currentDate }) => {
 
   const content = getContent(currentDate);
 
-  // Format date for notes (ISO format: "2026-01-25")
-  const dateStr = currentDate.toISOString().split('T')[0];
+  // Format date for notes using local time (ISO format: "2026-01-25")
+  const dateStr = toLocalDateString(currentDate);
 
   // Map URLs
   const continentalMapUrl = `https://maps.google.com/maps?q=${content.lat},${content.lng}&z=3&t=m&output=embed`;
