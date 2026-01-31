@@ -69,6 +69,19 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       q,
       { includeMetadataChanges: true },
       (snapshot) => {
+        const fromCache = snapshot.metadata.fromCache;
+        const recentServerFetch = Date.now() - serverFetchSucceededAt.current < 5_000;
+
+        if (fromCache && recentServerFetch) {
+          // Within the grace period after a successful getDocsFromServer().
+          // The cached snapshot may contain stale data (e.g. the iOS WebSocket
+          // was disconnected so the local cache hasn't been updated yet).
+          // Skip updating notes AND status flags — refreshNotes() already set
+          // both with authoritative server data.
+          setLoading(false);
+          return;
+        }
+
         const notesData: Note[] = snapshot.docs.map((doc) => {
           const data = doc.data();
           return {
@@ -84,17 +97,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
         });
         setNotes(notesData);
         setLoading(false);
-        const fromCache = snapshot.metadata.fromCache;
-        const recentServerFetch = Date.now() - serverFetchSucceededAt.current < 5_000;
 
         if (fromCache) {
-          // Only revert to cache status if we haven't just fetched from server.
-          // This prevents the listener (whose WebSocket may be disconnected on
-          // iOS) from immediately overwriting a successful manual refresh.
-          if (!recentServerFetch) {
-            setIsFromCache(true);
-            setHasPendingWrites(snapshot.metadata.hasPendingWrites);
-          }
+          setIsFromCache(true);
+          setHasPendingWrites(snapshot.metadata.hasPendingWrites);
         } else {
           // Server-confirmed data — always trust this.
           setIsFromCache(false);
