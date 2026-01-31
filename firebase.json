@@ -6,8 +6,7 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-      "Dockerfile",
-      "nginx.conf"
+      "Dockerfile"
     ],
     "rewrites": [
       {
