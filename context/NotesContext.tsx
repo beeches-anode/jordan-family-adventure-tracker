@@ -17,12 +17,14 @@ import { Note, Photo } from '../types';
 
 interface NotesContextType {
   notes: Note[];
-  addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<void>;
-  updateNote: (noteId: string, updates: { content?: string; date?: string }) => Promise<void>;
+  addNote: (author: 'Harry' | 'Trent', content: string, date: string, location?: string, photos?: Photo[]) => Promise<'confirmed' | 'pending'>;
+  updateNote: (noteId: string, updates: { content?: string; date?: string }) => Promise<'confirmed' | 'pending'>;
   deleteNote: (noteId: string) => Promise<void>;
   getNotesForDate: (date: string) => Note[];
   loading: boolean;
   error: string | null;
+  refreshError: string | null;
+  hasPendingWrites: boolean;
   refreshNotes: () => Promise<void>;
   lastSynced: Date | null;
   isFromCache: boolean;
@@ -50,7 +52,10 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [isFromCache, setIsFromCache] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [hasPendingWrites, setHasPendingWrites] = useState(false);
   const lastSyncedRef = useRef<Date | null>(null);
+  const visibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const notesRef = collection(db, 'notes');
@@ -75,7 +80,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
         });
         setNotes(notesData);
         setLoading(false);
-        setError(null);
+        setHasPendingWrites(snapshot.metadata.hasPendingWrites);
 
         const fromCache = snapshot.metadata.fromCache;
         setIsFromCache(fromCache);
@@ -83,6 +88,8 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
           const now = new Date();
           setLastSynced(now);
           lastSyncedRef.current = now;
+          setError(null);
+          setRefreshError(null);
         }
       },
       (err) => {
@@ -97,10 +104,30 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
 
   const refreshNotes = useCallback(async () => {
     setIsRefreshing(true);
-    try {
+    setRefreshError(null);
+
+    const fetchFromServer = async () => {
       const notesRef = collection(db, 'notes');
       const q = query(notesRef, orderBy('createdAt', 'desc'));
-      const snapshot = await getDocsFromServer(q);
+      const snapshot = await Promise.race([
+        getDocsFromServer(q),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Server request timed out')), 10_000)
+        ),
+      ]);
+      return snapshot;
+    };
+
+    try {
+      let snapshot;
+      try {
+        snapshot = await fetchFromServer();
+      } catch {
+        // First attempt failed -- wait for WebSocket reconnection, then retry once
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        snapshot = await fetchFromServer();
+      }
+
       const notesData: Note[] = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -119,29 +146,41 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       setLastSynced(now);
       lastSyncedRef.current = now;
       setIsFromCache(false);
-      setError(null);
+      setRefreshError(null);
     } catch (err) {
       console.error('Error refreshing notes from server:', err);
-      setError('Failed to refresh from server');
+      setRefreshError('Failed to refresh from server. Check your connection and try again.');
     } finally {
       setIsRefreshing(false);
     }
   }, []);
 
   // Auto-refresh when tab regains focus (with 30s throttle)
+  // Delay by 1.5s to give iOS time to re-establish the Firestore WebSocket
   useEffect(() => {
     const handleVisibilityChange = () => {
+      if (visibilityTimeoutRef.current) {
+        clearTimeout(visibilityTimeoutRef.current);
+        visibilityTimeoutRef.current = null;
+      }
+
       if (document.visibilityState === 'visible') {
         const now = Date.now();
         const last = lastSyncedRef.current;
         if (last && (now - last.getTime()) < 30_000) return;
-        refreshNotes();
+        visibilityTimeoutRef.current = setTimeout(() => {
+          visibilityTimeoutRef.current = null;
+          refreshNotes();
+        }, 1_500);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityTimeoutRef.current) {
+        clearTimeout(visibilityTimeoutRef.current);
+      }
     };
   }, [refreshNotes]);
 
@@ -151,10 +190,11 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
     date: string,
     location?: string,
     photos?: Photo[]
-  ): Promise<void> => {
+  ): Promise<'confirmed' | 'pending'> => {
     const notesRef = collection(db, 'notes');
     // Capture the user's current timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let confirmed = false;
     const writePromise = addDoc(notesRef, {
       author,
       content,
@@ -163,7 +203,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       timezone,
       photos: photos || [],
       createdAt: serverTimestamp(),
-    });
+    }).then(() => { confirmed = true; });
     // With persistentLocalCache the write is already committed locally.
     // Race against a timeout so the UI isn't blocked waiting for server confirmation.
     writePromise.catch(() => {});
@@ -171,16 +211,19 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       writePromise,
       new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
     ]);
+    return confirmed ? 'confirmed' : 'pending';
   };
 
-  const updateNote = async (noteId: string, updates: { content?: string; date?: string }): Promise<void> => {
+  const updateNote = async (noteId: string, updates: { content?: string; date?: string }): Promise<'confirmed' | 'pending'> => {
     const noteRef = doc(db, 'notes', noteId);
-    const writePromise = updateDoc(noteRef, updates);
+    let confirmed = false;
+    const writePromise = updateDoc(noteRef, updates).then(() => { confirmed = true; });
     writePromise.catch(() => {});
     await Promise.race([
       writePromise,
       new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
     ]);
+    return confirmed ? 'confirmed' : 'pending';
   };
 
   const deleteNote = async (noteId: string): Promise<void> => {
@@ -198,7 +241,7 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   };
 
   return (
-    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNotesForDate, loading, error, refreshNotes, lastSynced, isFromCache, isRefreshing }}>
+    <NotesContext.Provider value={{ notes, addNote, updateNote, deleteNote, getNotesForDate, loading, error, refreshError, hasPendingWrites, refreshNotes, lastSynced, isFromCache, isRefreshing }}>
       {children}
     </NotesContext.Provider>
   );
