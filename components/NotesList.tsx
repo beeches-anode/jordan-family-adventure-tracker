@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Photo } from '../types';
+import { PhotoLightbox } from './PhotoLightbox';
 import { TRIP_START_DATE, TRIP_END_DATE } from '../constants';
 
 const SESSION_KEY = 'journal_authenticated';
@@ -55,7 +56,7 @@ const getShortTimezone = (timezone: string): string => {
 
 interface PhotoGalleryProps {
   photos: Photo[];
-  onPhotoClick: (photo: Photo) => void;
+  onPhotoClick: (photos: Photo[], index: number) => void;
 }
 
 const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onPhotoClick }) => {
@@ -66,7 +67,7 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onPhotoClick }) => 
       {photos.map((photo, index) => (
         <button
           key={index}
-          onClick={() => onPhotoClick(photo)}
+          onClick={() => onPhotoClick(photos, index)}
           className="relative overflow-hidden rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <img
@@ -81,49 +82,9 @@ const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, onPhotoClick }) => 
   );
 };
 
-interface LightboxProps {
-  photo: Photo;
-  onClose: () => void;
-}
-
-const Lightbox: React.FC<LightboxProps> = ({ photo, onClose }) => {
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-8 w-8"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-      <img
-        src={photo.url}
-        alt="Full size"
-        className="max-w-full max-h-full object-contain rounded-lg"
-        onClick={(e) => e.stopPropagation()}
-      />
-    </div>
-  );
-};
-
 export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   const { getNotesForDate, updateNote, deleteNote, loading, error } = useNotes();
-  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
+  const [lightboxState, setLightboxState] = useState<{ photos: Photo[]; index: number } | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -375,7 +336,7 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                 {note.photos && note.photos.length > 0 && (
                   <PhotoGallery
                     photos={note.photos}
-                    onPhotoClick={(photo) => setLightboxPhoto(photo)}
+                    onPhotoClick={(photos, index) => setLightboxState({ photos, index })}
                   />
                 )}
               </>
@@ -385,8 +346,12 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
       </div>
 
       {/* Lightbox */}
-      {lightboxPhoto && (
-        <Lightbox photo={lightboxPhoto} onClose={() => setLightboxPhoto(null)} />
+      {lightboxState && (
+        <PhotoLightbox
+          photos={lightboxState.photos}
+          initialIndex={lightboxState.index}
+          onClose={() => setLightboxState(null)}
+        />
       )}
     </div>
   );
