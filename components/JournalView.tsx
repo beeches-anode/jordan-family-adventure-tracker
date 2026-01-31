@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
 import { Note, Photo } from '../types';
 import { PhotoLightbox } from './PhotoLightbox';
@@ -259,9 +260,20 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                           </div>
                         </div>
                         {note.content && (
-                          <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">
-                            {note.content}
-                          </p>
+                          <div className="text-slate-700 leading-relaxed text-sm prose prose-sm prose-slate max-w-none">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                em: ({ children }) => <em className="italic">{children}</em>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 last:mb-0">{children}</ul>,
+                                li: ({ children }) => <li className="mb-0.5">{children}</li>,
+                                a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline hover:text-indigo-800">{children}</a>,
+                              }}
+                            >
+                              {note.content}
+                            </ReactMarkdown>
+                          </div>
                         )}
                         {note.photos && note.photos.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">

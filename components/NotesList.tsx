@@ -327,6 +327,7 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                         em: ({ children }) => <em className="italic">{children}</em>,
                         ul: ({ children }) => <ul className="list-disc list-inside mb-2 last:mb-0">{children}</ul>,
                         li: ({ children }) => <li className="mb-0.5">{children}</li>,
+                        a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline hover:text-indigo-800">{children}</a>,
                       }}
                     >
                       {note.content}
