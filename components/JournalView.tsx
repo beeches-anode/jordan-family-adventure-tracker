@@ -51,10 +51,11 @@ const getShortTimezone = (timezone: string): string => {
 
 export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToDate }) => {
   const { notes, loading, error } = useNotes();
-  const { getCommentsForNote, getCommentCountForNote, deleteComment } = useComments();
+  const { getCommentsForNote, getCommentCountForNote, deleteComment, updateComment } = useComments();
   const [authorFilter, setAuthorFilter] = useState<AuthorFilter>('All');
   const [lightboxState, setLightboxState] = useState<{ photos: Photo[]; index: number } | null>(null);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const currentAuthor = localStorage.getItem('comment_author_name') || '';
 
   const toggleComments = (noteId: string) => {
     setExpandedComments((prev) => {
@@ -340,7 +341,9 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                                     key={comment.id}
                                     comment={comment}
                                     isJournalOwner={false}
+                                    currentAuthor={currentAuthor}
                                     onDelete={deleteComment}
+                                    onEdit={updateComment}
                                   />
                                 ))}
                               </div>

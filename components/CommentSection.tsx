@@ -8,9 +8,12 @@ interface CommentSectionProps {
   isJournalOwner: boolean;
 }
 
+const COMMENT_AUTHOR_KEY = 'comment_author_name';
+
 export const CommentSection: React.FC<CommentSectionProps> = ({ noteId, isJournalOwner }) => {
-  const { getCommentsForNote, addComment, deleteComment } = useComments();
+  const { getCommentsForNote, addComment, deleteComment, updateComment } = useComments();
   const [expanded, setExpanded] = useState(false);
+  const currentAuthor = localStorage.getItem(COMMENT_AUTHOR_KEY) || '';
 
   const comments = getCommentsForNote(noteId);
   const commentCount = comments.length;
@@ -23,6 +26,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ noteId, isJourna
 
   const handleDeleteComment = async (commentId: string) => {
     await deleteComment(commentId);
+  };
+
+  const handleEditComment = async (commentId: string, newContent: string) => {
+    await updateComment(commentId, newContent);
   };
 
   return (
@@ -76,7 +83,9 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ noteId, isJourna
                   key={comment.id}
                   comment={comment}
                   isJournalOwner={isJournalOwner}
+                  currentAuthor={currentAuthor}
                   onDelete={handleDeleteComment}
+                  onEdit={handleEditComment}
                 />
               ))}
             </div>

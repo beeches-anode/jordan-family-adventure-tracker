@@ -3,6 +3,7 @@ import {
   collection,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   query,
   orderBy,
@@ -16,6 +17,7 @@ interface CommentsContextType {
   comments: Comment[];
   addComment: (noteId: string, author: string, content: string) => Promise<void>;
   deleteComment: (commentId: string) => Promise<void>;
+  updateComment: (commentId: string, content: string) => Promise<void>;
   getCommentsForNote: (noteId: string) => Comment[];
   getCommentCountForNote: (noteId: string) => number;
   loading: boolean;
@@ -99,6 +101,16 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
     ]);
   }, []);
 
+  const updateComment = useCallback(async (commentId: string, content: string): Promise<void> => {
+    const commentRef = doc(db, 'comments', commentId);
+    const writePromise = updateDoc(commentRef, { content });
+    writePromise.catch(() => {});
+    await Promise.race([
+      writePromise,
+      new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
+    ]);
+  }, []);
+
   const getCommentsForNote = useCallback((noteId: string): Comment[] => {
     return comments.filter((c) => c.noteId === noteId);
   }, [comments]);
@@ -108,7 +120,7 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   }, [comments]);
 
   return (
-    <CommentsContext.Provider value={{ comments, addComment, deleteComment, getCommentsForNote, getCommentCountForNote, loading, error }}>
+    <CommentsContext.Provider value={{ comments, addComment, deleteComment, updateComment, getCommentsForNote, getCommentCountForNote, loading, error }}>
       {children}
     </CommentsContext.Provider>
   );

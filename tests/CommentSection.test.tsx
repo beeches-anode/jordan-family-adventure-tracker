@@ -7,6 +7,7 @@ import { Comment } from '../types';
 // Mock the CommentsContext
 const mockAddComment = vi.fn(() => Promise.resolve());
 const mockDeleteComment = vi.fn(() => Promise.resolve());
+const mockUpdateComment = vi.fn(() => Promise.resolve());
 let mockComments: Comment[] = [];
 
 vi.mock('../context/CommentsContext', () => ({
@@ -14,6 +15,7 @@ vi.mock('../context/CommentsContext', () => ({
     comments: mockComments,
     addComment: mockAddComment,
     deleteComment: mockDeleteComment,
+    updateComment: mockUpdateComment,
     getCommentsForNote: (noteId: string) => mockComments.filter(c => c.noteId === noteId),
     getCommentCountForNote: (noteId: string) => mockComments.filter(c => c.noteId === noteId).length,
     loading: false,
@@ -26,6 +28,7 @@ describe('CommentSection', () => {
     mockComments = [];
     mockAddComment.mockClear();
     mockDeleteComment.mockClear();
+    mockUpdateComment.mockClear();
     sessionStorage.clear();
     localStorage.clear();
   });

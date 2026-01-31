@@ -46,7 +46,7 @@ describe('CommentItem', () => {
     expect(screen.getByText('U')).toBeInTheDocument();
   });
 
-  it('does not show delete button when not journal owner', () => {
+  it('does not show delete button when not journal owner and not own comment', () => {
     const comment = makeComment();
     render(<CommentItem comment={comment} isJournalOwner={false} onDelete={vi.fn()} />);
 
@@ -107,5 +107,155 @@ describe('CommentItem', () => {
     const avatar1 = container1.querySelector('[class*="rounded-full"]');
     const avatar2 = container2.querySelector('[class*="rounded-full"]');
     expect(avatar1?.className).toBe(avatar2?.className);
+  });
+
+  // --- Own-comment edit/delete tests ---
+
+  it('shows edit and delete buttons for own comments', () => {
+    const comment = makeComment({ author: 'Peter' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTitle('Edit comment')).toBeInTheDocument();
+    expect(screen.getByTitle('Delete comment')).toBeInTheDocument();
+  });
+
+  it('matches author name case-insensitively', () => {
+    const comment = makeComment({ author: 'peter' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTitle('Edit comment')).toBeInTheDocument();
+  });
+
+  it('does not show edit button for other peoples comments', () => {
+    const comment = makeComment({ author: 'Grandma' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByTitle('Edit comment')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Delete comment')).not.toBeInTheDocument();
+  });
+
+  it('enters edit mode when edit button is clicked', async () => {
+    const user = userEvent.setup();
+    const comment = makeComment({ author: 'Peter', content: 'Original text' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByTitle('Edit comment'));
+
+    expect(screen.getByTestId('comment-edit-form')).toBeInTheDocument();
+    expect(screen.getByTestId('comment-edit-input')).toHaveValue('Original text');
+  });
+
+  it('saves edited comment when Save is clicked', async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn(() => Promise.resolve());
+    const comment = makeComment({ id: 'comment-99', author: 'Peter', content: 'Original' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+      />
+    );
+
+    await user.click(screen.getByTitle('Edit comment'));
+    const textarea = screen.getByTestId('comment-edit-input');
+    await user.clear(textarea);
+    await user.type(textarea, 'Updated text');
+    await user.click(screen.getByTestId('comment-edit-save-btn'));
+
+    expect(onEdit).toHaveBeenCalledWith('comment-99', 'Updated text');
+  });
+
+  it('cancels edit and restores original content', async () => {
+    const user = userEvent.setup();
+    const comment = makeComment({ author: 'Peter', content: 'Original text' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByTitle('Edit comment'));
+    const textarea = screen.getByTestId('comment-edit-input');
+    await user.clear(textarea);
+    await user.type(textarea, 'Changed text');
+    await user.click(screen.getByTestId('comment-edit-cancel-btn'));
+
+    // Should be back to displaying the original content
+    expect(screen.getByTestId('comment-content')).toHaveTextContent('Original text');
+    expect(screen.queryByTestId('comment-edit-form')).not.toBeInTheDocument();
+  });
+
+  it('does not show edit button when onEdit is not provided', () => {
+    const comment = makeComment({ author: 'Peter' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={vi.fn()}
+      />
+    );
+
+    // Should show delete (own comment) but not edit (no onEdit handler)
+    expect(screen.queryByTitle('Edit comment')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Delete comment')).toBeInTheDocument();
+  });
+
+  it('allows own comment deletion even when not journal owner', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn(() => Promise.resolve());
+    const comment = makeComment({ id: 'comment-5', author: 'Peter' });
+    render(
+      <CommentItem
+        comment={comment}
+        isJournalOwner={false}
+        currentAuthor="Peter"
+        onDelete={onDelete}
+      />
+    );
+
+    await user.click(screen.getByTitle('Delete comment'));
+    await user.click(screen.getByText('Delete'));
+
+    expect(onDelete).toHaveBeenCalledWith('comment-5');
   });
 });
