@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNotes } from '../context/NotesContext';
 import { Note, Photo } from '../types';
+import { PhotoLightbox } from './PhotoLightbox';
 
 interface JournalViewProps {
   onClose: () => void;
@@ -48,7 +49,7 @@ const getShortTimezone = (timezone: string): string => {
 export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToDate }) => {
   const { notes, loading, error } = useNotes();
   const [authorFilter, setAuthorFilter] = useState<AuthorFilter>('All');
-  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null);
+  const [lightboxState, setLightboxState] = useState<{ photos: Photo[]; index: number } | null>(null);
 
   const filteredNotes = useMemo(() => {
     if (authorFilter === 'All') return notes;
@@ -267,7 +268,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                             {note.photos.map((photo, photoIndex) => (
                               <button
                                 key={photoIndex}
-                                onClick={() => setLightboxPhoto(photo)}
+                                onClick={() => setLightboxState({ photos: note.photos!, index: photoIndex })}
                                 className="relative overflow-hidden rounded-lg hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-indigo-500"
                               >
                                 <img
@@ -291,37 +292,13 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
       </div>
 
       {/* Lightbox */}
-      {lightboxPhoto && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setLightboxPhoto(null)}
-        >
-          <button
-            onClick={() => setLightboxPhoto(null)}
-            className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-          <img
-            src={lightboxPhoto.url}
-            alt="Full size"
-            className="max-w-full max-h-full object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      {lightboxState && (
+        <PhotoLightbox
+          photos={lightboxState.photos}
+          initialIndex={lightboxState.index}
+          onClose={() => setLightboxState(null)}
+          zIndex={60}
+        />
       )}
     </div>
   );
