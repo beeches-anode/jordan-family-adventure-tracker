@@ -52,6 +52,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [selectedPhotos, setSelectedPhotos] = useState<SelectedPhoto[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [tripDate, setTripDate] = useState(date); // The trip day being described
@@ -227,7 +228,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
       }
 
       // Add note with photos - uses tripDate (the day being described)
-      await addNote(author, content.trim(), tripDate, location, uploadedPhotos);
+      const writeStatus = await addNote(author, content.trim(), tripDate, location, uploadedPhotos);
 
       // Cleanup
       selectedPhotos.forEach((photo) => URL.revokeObjectURL(photo.preview));
@@ -235,6 +236,7 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
       setSelectedPhotos([]);
       setTripDate(date); // Reset to current viewing date
       setExifDetected(null);
+      setSuccessMessage(writeStatus === 'confirmed' ? 'Note posted!' : 'Note saved locally, syncing...');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
@@ -496,8 +498,8 @@ export const NoteForm: React.FC<NoteFormProps> = ({ date, location }) => {
           </button>
 
           {showSuccess && (
-            <span className="text-emerald-600 font-medium animate-in fade-in">
-              Note posted!
+            <span className={`font-medium animate-in fade-in ${successMessage.includes('syncing') ? 'text-amber-600' : 'text-emerald-600'}`}>
+              {successMessage}
             </span>
           )}
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNotes } from '../context/NotesContext';
 
 export const SyncStatusBar: React.FC = () => {
-  const { refreshNotes, lastSynced, isFromCache, isRefreshing } = useNotes();
+  const { refreshNotes, lastSynced, isFromCache, isRefreshing, refreshError, hasPendingWrites } = useNotes();
   const [timeAgo, setTimeAgo] = useState<string>('');
 
   useEffect(() => {
@@ -23,14 +23,29 @@ export const SyncStatusBar: React.FC = () => {
     return () => clearInterval(interval);
   }, [lastSynced]);
 
+  // Determine status dot color and label
+  let dotClass = 'bg-emerald-400';
+  let statusLabel = `Synced: ${timeAgo}`;
+
+  if (refreshError) {
+    dotClass = 'bg-red-400';
+    statusLabel = 'Refresh failed';
+  } else if (hasPendingWrites) {
+    dotClass = 'bg-amber-400 animate-pulse';
+    statusLabel = 'Syncing changes...';
+  } else if (isFromCache) {
+    dotClass = 'bg-amber-400';
+    statusLabel = `Cached: ${timeAgo}`;
+  }
+
   return (
     <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs">
       <span
-        className={`w-2 h-2 rounded-full flex-shrink-0 ${isFromCache ? 'bg-amber-400' : 'bg-emerald-400'}`}
-        title={isFromCache ? 'Showing cached data' : 'Synced with server'}
+        className={`w-2 h-2 rounded-full flex-shrink-0 ${dotClass}`}
+        title={refreshError || (hasPendingWrites ? 'Local changes syncing to server' : isFromCache ? 'Showing cached data' : 'Synced with server')}
       />
-      <span className="text-indigo-200 whitespace-nowrap hidden sm:inline">
-        {isFromCache ? 'Cached' : 'Synced'}: {timeAgo}
+      <span className={`whitespace-nowrap hidden sm:inline ${refreshError ? 'text-red-300' : 'text-indigo-200'}`}>
+        {statusLabel}
       </span>
       <button
         onClick={refreshNotes}
