@@ -94,6 +94,7 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
   const [editDate, setEditDate] = useState('');
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [editPending, setEditPending] = useState(false);
 
   const notesForDate = getNotesForDate(date).sort(
     (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
@@ -131,14 +132,22 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
     if (!editingNoteId) return;
     setEditSaving(true);
     setEditError(null);
+    setEditPending(false);
     try {
-      await updateNote(editingNoteId, { content: editContent, date: editDate });
+      const status = await updateNote(editingNoteId, { content: editContent, date: editDate });
       setEditSaving(false);
-      setEditingNoteId(null);
+      if (status === 'confirmed') {
+        setEditingNoteId(null);
+        setEditPending(false);
+      } else {
+        // Write is in local cache but server hasn't confirmed — the edit
+        // won't be visible on other devices (e.g. the PWA) until it syncs.
+        setEditPending(true);
+      }
     } catch (err) {
       console.error('Failed to update note:', err);
       setEditSaving(false);
-      setEditError('Failed to save. You can retry or cancel.');
+      setEditError('Failed to save. Check your connection and retry.');
     }
   };
 
@@ -146,6 +155,7 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
     setEditingNoteId(null);
     setEditSaving(false);
     setEditError(null);
+    setEditPending(false);
   };
 
   if (loading) {
@@ -301,26 +311,37 @@ export const NotesList: React.FC<NotesListProps> = ({ date }) => {
                     ))}
                   </select>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleEditSave}
-                    disabled={editSaving}
-                    className="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
-                  >
-                    {editSaving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button
-                    onClick={handleEditCancel}
-                    className="px-3 py-1.5 text-xs bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleEditSave}
+                      disabled={editSaving}
+                      className={`px-3 py-1.5 text-xs text-white rounded-lg transition-colors disabled:opacity-50 ${
+                        editPending
+                          ? 'bg-amber-600 hover:bg-amber-700'
+                          : 'bg-indigo-600 hover:bg-indigo-700'
+                      }`}
+                    >
+                      {editSaving ? 'Saving...' : editPending ? 'Retry' : 'Save'}
+                    </button>
+                    <button
+                      onClick={handleEditCancel}
+                      className="px-3 py-1.5 text-xs bg-slate-200 text-slate-600 rounded-lg hover:bg-slate-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    {editDate !== date && !editPending && !editError && (
+                      <span className="text-xs text-amber-600">
+                        Note will move to {TRIP_DATES.find(d => d.value === editDate)?.label}
+                      </span>
+                    )}
+                  </div>
                   {editError && (
                     <span className="text-xs text-red-600">{editError}</span>
                   )}
-                  {editDate !== date && (
+                  {editPending && (
                     <span className="text-xs text-amber-600">
-                      Note will move to {TRIP_DATES.find(d => d.value === editDate)?.label}
+                      Saved locally but not confirmed by server. This change won't appear on other devices until it syncs. Stay on this page with a connection, or tap Retry.
                     </span>
                   )}
                 </div>

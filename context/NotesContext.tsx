@@ -248,12 +248,15 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const updateNote = async (noteId: string, updates: { content?: string; date?: string }): Promise<'confirmed' | 'pending'> => {
     const noteRef = doc(db, 'notes', noteId);
     let confirmed = false;
-    const writePromise = updateDoc(noteRef, updates).then(() => { confirmed = true; });
-    writePromise.catch(() => {});
+    let writeError: unknown = null;
+    const writePromise = updateDoc(noteRef, updates)
+      .then(() => { confirmed = true; })
+      .catch((err) => { writeError = err; });
     await Promise.race([
       writePromise,
       new Promise<void>((resolve) => setTimeout(resolve, 10_000)),
     ]);
+    if (writeError) throw writeError;
     return confirmed ? 'confirmed' : 'pending';
   };
 
