@@ -56,10 +56,12 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const [hasPendingWrites, setHasPendingWrites] = useState(false);
   const lastSyncedRef = useRef<Date | null>(null);
   const visibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Grace period: after a successful getDocsFromServer, suppress onSnapshot from
-  // overwriting isFromCache back to true (race condition on iOS where the
-  // real-time WebSocket stays disconnected).
-  const serverFetchSucceededAt = useRef<number>(0);
+  // Server-confirmation gate: after a successful refreshNotes(), block ALL cached
+  // onSnapshot updates until server-confirmed data (fromCache: false) arrives.
+  // This prevents the Firestore real-time listener from overwriting fresh server
+  // data with stale IndexedDB cache — which happens on iOS where the WebSocket
+  // can take 10-30s to reconnect after the app wakes from background.
+  const awaitingServerConfirmation = useRef<boolean>(false);
 
   useEffect(() => {
     const notesRef = collection(db, 'notes');
@@ -70,14 +72,13 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       { includeMetadataChanges: true },
       (snapshot) => {
         const fromCache = snapshot.metadata.fromCache;
-        const recentServerFetch = Date.now() - serverFetchSucceededAt.current < 5_000;
 
-        if (fromCache && recentServerFetch) {
-          // Within the grace period after a successful getDocsFromServer().
-          // The cached snapshot may contain stale data (e.g. the iOS WebSocket
-          // was disconnected so the local cache hasn't been updated yet).
-          // Skip updating notes AND status flags — refreshNotes() already set
-          // both with authoritative server data.
+        if (fromCache && awaitingServerConfirmation.current) {
+          // Gate is active: refreshNotes() successfully fetched from the server
+          // but the real-time WebSocket hasn't reconnected yet. The cached
+          // snapshot likely contains stale IndexedDB data, so skip updating
+          // notes entirely — refreshNotes() already set authoritative data.
+          // The gate is cleared once onSnapshot delivers fromCache: false.
           setLoading(false);
           return;
         }
@@ -102,13 +103,13 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
           setIsFromCache(true);
           setHasPendingWrites(snapshot.metadata.hasPendingWrites);
         } else {
-          // Server-confirmed data — always trust this.
+          // Server-confirmed data — always trust this, and clear the gate.
+          awaitingServerConfirmation.current = false;
           setIsFromCache(false);
           setHasPendingWrites(snapshot.metadata.hasPendingWrites);
           const now = new Date();
           setLastSynced(now);
           lastSyncedRef.current = now;
-          serverFetchSucceededAt.current = Date.now();
           setError(null);
           setRefreshError(null);
         }
@@ -126,6 +127,9 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
   const refreshNotes = useCallback(async () => {
     setIsRefreshing(true);
     setRefreshError(null);
+    // Activate the gate immediately so any cached onSnapshot events that fire
+    // during or after our server fetch are suppressed.
+    awaitingServerConfirmation.current = true;
 
     const fetchFromServer = async () => {
       const notesRef = collection(db, 'notes');
@@ -166,13 +170,17 @@ export const NotesProvider: React.FC<NotesProviderProps> = ({ children }) => {
       const now = new Date();
       setLastSynced(now);
       lastSyncedRef.current = now;
-      serverFetchSucceededAt.current = Date.now();
       setIsFromCache(false);
       setHasPendingWrites(false);
       setRefreshError(null);
+      // Gate stays active — it will be cleared when onSnapshot delivers
+      // server-confirmed data (fromCache: false).
     } catch (err) {
       console.error('Error refreshing notes from server:', err);
       setRefreshError('Failed to refresh from server. Check your connection and try again.');
+      // Clear the gate on failure so cached onSnapshot events can resume —
+      // stale data is better than frozen data when the server is unreachable.
+      awaitingServerConfirmation.current = false;
     } finally {
       setIsRefreshing(false);
     }
