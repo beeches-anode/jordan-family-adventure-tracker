@@ -62,6 +62,12 @@ vi.mock('../context/CommentsContext', () => ({
     getCommentCountForNote: (noteId: string) => mockComments.filter((c) => c.noteId === noteId).length,
     loading: false,
     error: null,
+    refreshComments: vi.fn(() => Promise.resolve()),
+    lastSynced: new Date(),
+    isFromCache: false,
+    isRefreshing: false,
+    refreshError: null,
+    hasPendingWrites: false,
   }),
 }));
 

@@ -1,9 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNotes } from '../context/NotesContext';
+import { useComments } from '../context/CommentsContext';
+import { useWeather } from '../context/WeatherContext';
 
 export const SyncStatusBar: React.FC = () => {
-  const { refreshNotes, lastSynced, isFromCache, isRefreshing, refreshError, hasPendingWrites } = useNotes();
+  const {
+    refreshNotes,
+    lastSynced: notesLastSynced,
+    isFromCache: notesFromCache,
+    isRefreshing: notesRefreshing,
+    refreshError: notesRefreshError,
+    hasPendingWrites: notesPendingWrites,
+  } = useNotes();
+  const {
+    refreshComments,
+    lastSynced: commentsLastSynced,
+    isFromCache: commentsFromCache,
+    isRefreshing: commentsRefreshing,
+    refreshError: commentsRefreshError,
+    hasPendingWrites: commentsPendingWrites,
+  } = useComments();
+  const {
+    refreshWeather,
+    isRefreshing: weatherRefreshing,
+    refreshError: weatherRefreshError,
+  } = useWeather();
+
   const [timeAgo, setTimeAgo] = useState<string>('');
+
+  // Aggregate state across all contexts
+  const isRefreshing = notesRefreshing || commentsRefreshing || weatherRefreshing;
+  const refreshError = notesRefreshError || commentsRefreshError || weatherRefreshError;
+  const isFromCache = notesFromCache || commentsFromCache;
+  const hasPendingWrites = notesPendingWrites || commentsPendingWrites;
+
+  // lastSynced = the oldest (minimum) non-null timestamp, showing worst-case staleness
+  const lastSynced = [notesLastSynced, commentsLastSynced]
+    .filter((d): d is Date => d !== null)
+    .reduce<Date | null>((oldest, d) => (!oldest || d < oldest ? d : oldest), null);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.allSettled([refreshNotes(), refreshComments(), refreshWeather()]);
+  }, [refreshNotes, refreshComments, refreshWeather]);
 
   useEffect(() => {
     const updateTimeAgo = () => {
@@ -48,7 +86,7 @@ export const SyncStatusBar: React.FC = () => {
         {statusLabel}
       </span>
       <button
-        onClick={refreshNotes}
+        onClick={handleRefresh}
         disabled={isRefreshing}
         className="p-1 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
         title="Refresh from server"
