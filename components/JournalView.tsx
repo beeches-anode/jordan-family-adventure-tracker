@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useNotes } from '../context/NotesContext';
-import { useComments } from '../context/CommentsContext';
 import { Note, Photo } from '../types';
 import { PhotoLightbox } from './PhotoLightbox';
-import { CommentItem } from './CommentItem';
+import { CommentSection } from './CommentSection';
 import { parseLocalDate } from '../constants';
+
+const SESSION_KEY = 'journal_authenticated';
 
 interface JournalViewProps {
   onClose: () => void;
@@ -52,23 +53,14 @@ const getShortTimezone = (timezone: string): string => {
 
 export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToDate }) => {
   const { notes, loading, error } = useNotes();
-  const { getCommentsForNote, getCommentCountForNote, deleteComment, updateComment } = useComments();
   const [authorFilter, setAuthorFilter] = useState<AuthorFilter>('All');
   const [lightboxState, setLightboxState] = useState<{ photos: Photo[]; index: number } | null>(null);
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
-  const currentAuthor = localStorage.getItem('comment_author_name') || '';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const toggleComments = (noteId: string) => {
-    setExpandedComments((prev) => {
-      const next = new Set(prev);
-      if (next.has(noteId)) {
-        next.delete(noteId);
-      } else {
-        next.add(noteId);
-      }
-      return next;
-    });
-  };
+  useEffect(() => {
+    const authenticated = sessionStorage.getItem(SESSION_KEY) === 'true';
+    setIsAuthenticated(authenticated);
+  }, []);
 
   const filteredNotes = useMemo(() => {
     if (authorFilter === 'All') return notes;
@@ -311,46 +303,8 @@ export const JournalView: React.FC<JournalViewProps> = ({ onClose, onNavigateToD
                             ))}
                           </div>
                         )}
-                        {/* Revealable comments */}
-                        {getCommentCountForNote(note.id) > 0 && (
-                          <div className="mt-2 pt-2 border-t border-slate-100">
-                            <button
-                              onClick={() => toggleComments(note.id)}
-                              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-indigo-500 transition-colors"
-                              data-testid={`journal-comment-toggle-${note.id}`}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                              </svg>
-                              <span>
-                                {getCommentCountForNote(note.id)} {getCommentCountForNote(note.id) === 1 ? 'comment' : 'comments'}
-                              </span>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={`h-3 w-3 transition-transform ${expandedComments.has(note.id) ? 'rotate-180' : ''}`}
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                              </svg>
-                            </button>
-                            {expandedComments.has(note.id) && (
-                              <div className="mt-2 divide-y divide-slate-100" data-testid={`journal-comment-list-${note.id}`}>
-                                {getCommentsForNote(note.id).map((comment) => (
-                                  <CommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    isJournalOwner={false}
-                                    currentAuthor={currentAuthor}
-                                    onDelete={deleteComment}
-                                    onEdit={updateComment}
-                                  />
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {/* Comments */}
+                        <CommentSection noteId={note.id} isJournalOwner={isAuthenticated} />
                       </div>
                     ))}
                   </div>
