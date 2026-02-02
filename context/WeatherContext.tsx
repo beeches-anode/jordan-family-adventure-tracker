@@ -23,6 +23,9 @@ interface WeatherContextType {
   loading: boolean;
   isOnline: boolean;
   lastUpdated: Date | null;
+  refreshWeather: () => Promise<void>;
+  isRefreshing: boolean;
+  refreshError: string | null;
 }
 
 const WeatherContext = createContext<WeatherContextType | undefined>(undefined);
@@ -45,6 +48,8 @@ export const WeatherProvider: React.FC<WeatherProviderProps> = ({ children, curr
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
 
   // Track online/offline status
@@ -168,6 +173,20 @@ export const WeatherProvider: React.FC<WeatherProviderProps> = ({ children, curr
     }
   }, [isOnline, weather, currentDate, saveWeatherToFirestore]);
 
+  // User-facing refresh wrapper with status tracking
+  const refreshWeather = useCallback(async () => {
+    setIsRefreshing(true);
+    setRefreshError(null);
+    try {
+      await refreshAllWeather();
+    } catch (err) {
+      console.error('Error refreshing weather:', err);
+      setRefreshError('Failed to refresh weather data.');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshAllWeather]);
+
   // Initial fetch and periodic refresh
   useEffect(() => {
     if (!hasInitialized || !isOnline) return;
@@ -197,7 +216,7 @@ export const WeatherProvider: React.FC<WeatherProviderProps> = ({ children, curr
   }, [weather]);
 
   return (
-    <WeatherContext.Provider value={{ weather, getWeatherForDate, loading, isOnline, lastUpdated }}>
+    <WeatherContext.Provider value={{ weather, getWeatherForDate, loading, isOnline, lastUpdated, refreshWeather, isRefreshing, refreshError }}>
       {children}
     </WeatherContext.Provider>
   );
