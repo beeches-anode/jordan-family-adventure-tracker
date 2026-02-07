@@ -62,12 +62,24 @@ export const SyncStatusBar: React.FC = () => {
   }, [lastSynced]);
 
   // Determine status dot color and label
+  const hasEverSynced = lastSynced !== null;
   let dotClass = 'bg-emerald-400';
   let statusLabel = `Synced: ${timeAgo}`;
 
-  if (refreshError) {
+  if (refreshError && !hasEverSynced) {
+    // Never synced and refresh failed — genuine error
     dotClass = 'bg-red-400';
     statusLabel = 'Refresh failed';
+  } else if (refreshError && hasEverSynced) {
+    // Had a successful sync before but refresh just failed — transient error on iOS,
+    // downgrade to amber since we still have usable (cached) data.
+    dotClass = 'bg-amber-400';
+    statusLabel = `Cached: ${timeAgo}`;
+  } else if (!hasEverSynced && isFromCache) {
+    // Initial load — Firestore WebSocket hasn't connected yet (common on iOS).
+    // Show neutral connecting state instead of alarming amber "Cached: Never".
+    dotClass = 'bg-indigo-400 animate-pulse';
+    statusLabel = 'Connecting...';
   } else if (isFromCache && hasPendingWrites) {
     dotClass = 'bg-amber-400 animate-pulse';
     statusLabel = 'Syncing changes...';
@@ -80,9 +92,9 @@ export const SyncStatusBar: React.FC = () => {
     <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-xs">
       <span
         className={`w-2 h-2 rounded-full flex-shrink-0 ${dotClass}`}
-        title={refreshError || (hasPendingWrites ? 'Local changes syncing to server' : isFromCache ? 'Showing cached data' : 'Synced with server')}
+        title={refreshError ? (hasEverSynced ? 'Showing cached data (refresh failed)' : refreshError) : (!hasEverSynced && isFromCache) ? 'Connecting to server...' : hasPendingWrites ? 'Local changes syncing to server' : isFromCache ? 'Showing cached data' : 'Synced with server'}
       />
-      <span className={`whitespace-nowrap hidden sm:inline ${refreshError ? 'text-red-300' : 'text-indigo-200'}`}>
+      <span className={`whitespace-nowrap hidden sm:inline ${(refreshError && !hasEverSynced) ? 'text-red-300' : 'text-indigo-200'}`}>
         {statusLabel}
       </span>
       <button

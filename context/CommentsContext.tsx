@@ -56,6 +56,7 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
   const [hasPendingWrites, setHasPendingWrites] = useState(false);
   const lastSyncedRef = useRef<Date | null>(null);
   const visibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshErrorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Server-confirmation gate: after a successful refreshComments(), block ALL cached
   // onSnapshot updates until server-confirmed data (fromCache: false) arrives.
   // This prevents the Firestore real-time listener from overwriting fresh server
@@ -121,9 +122,26 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
     return () => unsubscribe();
   }, []);
 
+  // Auto-clear refreshError after 30s so transient iOS errors don't leave a
+  // permanent red indicator. The next visibility-change refresh will retry anyway.
+  const setRefreshErrorWithAutoClear = useCallback((error: string) => {
+    if (refreshErrorTimeoutRef.current) {
+      clearTimeout(refreshErrorTimeoutRef.current);
+    }
+    setRefreshError(error);
+    refreshErrorTimeoutRef.current = setTimeout(() => {
+      refreshErrorTimeoutRef.current = null;
+      setRefreshError(null);
+    }, 30_000);
+  }, []);
+
   const refreshComments = useCallback(async () => {
     setIsRefreshing(true);
     setRefreshError(null);
+    if (refreshErrorTimeoutRef.current) {
+      clearTimeout(refreshErrorTimeoutRef.current);
+      refreshErrorTimeoutRef.current = null;
+    }
     // Activate the gate immediately so any cached onSnapshot events that fire
     // during or after our server fetch are suppressed.
     awaitingServerConfirmation.current = true;
@@ -171,14 +189,14 @@ export const CommentsProvider: React.FC<CommentsProviderProps> = ({ children }) 
       // server-confirmed data (fromCache: false).
     } catch (err) {
       console.error('Error refreshing comments from server:', err);
-      setRefreshError('Failed to refresh from server. Check your connection and try again.');
+      setRefreshErrorWithAutoClear('Failed to refresh from server. Check your connection and try again.');
       // Clear the gate on failure so cached onSnapshot events can resume —
       // stale data is better than frozen data when the server is unreachable.
       awaitingServerConfirmation.current = false;
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [setRefreshErrorWithAutoClear]);
 
   // Auto-refresh when tab regains focus (with 30s throttle)
   // Delay by 1.5s to give iOS time to re-establish the Firestore WebSocket
