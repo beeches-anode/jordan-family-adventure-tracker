@@ -175,57 +175,61 @@ export const TripStatus: React.FC<TripStatusProps> = ({ currentDate, onDateChang
         ],
         lodging: 'El Chalten'
       };
-      if (d === 7) return { 
-        loc: 'El Chalten', 
-        act: 'Rio de las Vueltas Kayak', 
-        icon: '🛶', 
+      if (d === 7) return {
+        loc: 'El Calafate',
+        act: 'Free Day & Transfer',
+        icon: '🥾',
         details: [
-          'Kayak activity @ 10:00am local time (11:00pm, 7 Feb, Brisbane time)',
-          '12km downstream glacial river paddle',
-          'Active recovery session'
+          'Free morning in El Chaltén — optional hikes: Laguna Torre or Chorrillo del Salto',
+          'Afternoon transfer to El Calafate (~3 hours)',
+          'Arrive El Calafate & check in to Posta Sur'
         ],
-        lodging: 'El Chalten'
+        lodging: 'Posta Sur, El Calafate'
       };
-      if (d === 8) return { 
-        loc: 'El Calafate', 
-        act: 'Transit South', 
-        icon: '🏙️', 
+      if (d === 8) return {
+        loc: 'Perito Moreno',
+        act: 'Glacier Day',
+        icon: '❄️',
         details: [
-          'Bus to Calafate @ 1:00pm local time (2:00am, 9 Feb, Brisbane time)', 
-          'Arrive Calafate @ 4:00pm local time (5:00am, 9 Feb, Brisbane time)',
-          'Calafate Berry tasting in town'
+          'Included visit to the Perito Moreno Glacier',
+          'Pasarelas walkways exploration — viewing the 70m high ice face',
+          'Optional boat ride for an up-close glacier experience'
         ],
-        lodging: 'El Calafate'
+        lodging: 'Posta Sur, El Calafate'
       };
-      if (d === 9) return { 
-        loc: 'Perito Moreno', 
-        act: 'Glacier Walkways', 
-        icon: '❄️', 
+      if (d === 9) return {
+        loc: 'El Calafate',
+        act: 'Free Day',
+        icon: '🦩',
         details: [
-          'Depart for Glacier @ 9:00am local time (10:00pm, 9 Feb, Brisbane time)',
-          'Pasarelas walkways exploration @ 10:45am local time (11:45pm, 9 Feb, Brisbane time)',
-          'Viewing the 70m high ice face'
+          'Free day for optional activities in El Calafate',
+          'Options: Laguna Nimez bird reserve, Estancia visit, or souvenir shopping',
+          'Leisurely exploration of the town'
         ],
-        lodging: 'El Calafate'
+        lodging: 'Posta Sur, El Calafate'
       };
-      if (d === 10) return { 
-        loc: 'El Calafate', 
-        act: 'Optional Bird Reserve', 
-        icon: '🦩', 
-        details: ['Laguna Nimez wetland visit', 'Spotting flamingos and black-necked swans', 'Farewell Patagonia dinner'],
-        lodging: 'El Calafate'
-      };
-      if (d === 11) return { 
-        loc: 'Buenos Aires', 
-        act: 'Return to the Capital', 
-        icon: '✈️', 
+      if (d === 10) return {
+        loc: 'Buenos Aires',
+        act: 'Return to the Capital',
+        icon: '✈️',
         details: [
-          'Flight to BA @ 10:30am local time (11:30pm, 11 Feb, Brisbane time)', 
-          'Arrive Buenos Aires @ 1:30pm local time (2:30am, 12 Feb, Brisbane time)',
-          'End of official G Adventures tour'
+          'Flight from El Calafate to Buenos Aires (~3 hours)',
+          'Farewell to Patagonia — end of the hiking portion',
+          'Check in to Up America Plaza'
         ],
         lodging: 'Up America Plaza',
-        transit: 'FTE -> AEP (Flight)'
+        transit: 'FTE -> AEP/EZE (Flight)'
+      };
+      if (d === 11) return {
+        loc: 'Buenos Aires',
+        act: 'End of G Adventures Tour',
+        icon: '🎒',
+        details: [
+          'Official end of the G Adventures (SACC) Patagonia tour',
+          'Free day to explore Buenos Aires',
+          'Recoleta, Palermo, or San Telmo neighborhoods'
+        ],
+        lodging: 'Up America Plaza'
       };
       if (d === 12) return { 
         loc: 'Buenos Aires', 

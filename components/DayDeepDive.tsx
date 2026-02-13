@@ -187,57 +187,57 @@ export const DayDeepDive: React.FC<DayDeepDiveProps> = ({ currentDate }) => {
         funFact: "The skyline of Mount Fitz Roy is the inspiration for the logo of the famous 'Patagonia' clothing brand."
       };
       if (d === 7) return {
-        title: "Glacial Kayak: Rio de las Vueltas",
-        summary: "An active recovery day. Today the boys trade their boots for paddles as they navigate glacial waters starting this morning (~9:00pm tonight in Brisbane).",
-        lat: -49.37, lng: -72.85, localZoom: 12,
+        title: "Farewell El Chaltén",
+        summary: "A free morning to squeeze in one last optional hike before transferring south to El Calafate, the gateway to the glaciers.",
+        lat: -49.333, lng: -72.883, localZoom: 13,
         sections: [
-          { heading: "The Paddle", content: "A 12km downstream journey through Class I rapids in freezing glacial meltwater.", icon: "🛶" },
-          { heading: "Unique Perspective", content: "Kayaking offers a view of the mountains from the water that most hikers never see.", icon: "🏔️" },
-          { heading: "Estancia Finish", content: "The journey ends at a traditional Patagonian estancia (ranch).", icon: "🐎" }
+          { heading: "Laguna Torre", content: "An optional 18km out-and-back trail with views of the needle-like Cerro Torre and its hanging glacier.", icon: "🏔️" },
+          { heading: "Chorrillo del Salto", content: "A shorter, easier option—a pleasant walk to a 20-metre waterfall just outside town.", icon: "💧" },
+          { heading: "The Transfer", content: "An afternoon drive across the Patagonian steppe to El Calafate, passing vast open landscapes and Lago Argentino.", icon: "🚌" }
         ],
-        funFact: "The Rio de las Vueltas is fed by the melting ice of the Fitz Roy massif, making the water incredibly pure—but very cold!"
+        funFact: "Cerro Torre was the subject of one of mountaineering's greatest controversies—Cesare Maestri's 1959 claim to have summited it is still debated today."
       };
       if (d === 8) return {
-        title: "Heading South: El Calafate",
-        summary: "A 3-hour drive @ 1:00pm local (2:00am tomorrow in Brisbane) takes them to El Calafate, gateway to the Southern Ice Field.",
-        lat: -50.33, lng: -72.26, localZoom: 13,
-        sections: [
-          { heading: "Calafate Berry", content: "The town is named after the calafate berry. Local legend says if you eat it, you'll return to Patagonia.", icon: "🫐" },
-          { heading: "Avenida Libertador", content: "The main street is filled with handicraft shops and parrillas (steakhouses).", icon: "🥩" },
-          { heading: "Lago Argentino", content: "The town sits on the shore of the largest lake in Argentina, filled with 'glacial flour'.", icon: "🌊" }
-        ],
-        funFact: "El Calafate was originally just a stop for wool traders; today it is one of the most visited destinations in South America."
-      };
-      if (d === 9) return {
         title: "The Moving Giant: Perito Moreno",
         summary: "One of the few glaciers in the world still advancing. This massive wall of blue ice is a bucket-list experience for today.",
         lat: -50.47, lng: -73.04, localZoom: 12,
         sections: [
           { heading: "The Walkways", content: "They'll explore 5.5km of metal walkways providing views of the 70-meter-high front face.", icon: "🚶" },
           { heading: "Thunderous Calving", content: "Every few minutes, massive chunks of ice break off with a sound like a cannon blast.", icon: "❄️" },
-          { heading: "Blue Ice", content: "The ice looks blue because it's so compressed it absorbs all colors except blue.", icon: "💎" }
+          { heading: "Optional Boat Ride", content: "For an up-close encounter, there's the option to take a boat right to the glacier face and feel the chill of the ice.", icon: "🚤" }
         ],
         funFact: "The Perito Moreno glacier is larger than the entire city of Buenos Aires."
       };
-      if (d === 10) return {
-        title: "Patagonia Finale: El Calafate Free Day",
-        summary: "A final day for the boys to choose their own adventure. They might go ice trekking or visit the Laguna Nimez bird reserve.",
+      if (d === 9) return {
+        title: "El Calafate: Choose Your Own Adventure",
+        summary: "A free day for the boys to explore El Calafate at their own pace. Flamingos, estancias, or simply enjoying the Patagonian town.",
         lat: -50.32, lng: -72.28, localZoom: 14,
         sections: [
-          { heading: "Laguna Nimez", content: "Just outside town, this reserve is home to flamingos and black-necked swans.", icon: "🦩" },
-          { heading: "Glaciarium", content: "A world-class ice museum that explains the science of the Patagonian ice fields.", icon: "🧊" },
-          { heading: "Estancia Visit", content: "A chance to visit a working ranch, see sheep shearing, and enjoy a traditional barbecue.", icon: "🐑" }
+          { heading: "Laguna Nimez", content: "Just outside town, this reserve is home to Chilean flamingos and black-necked swans against a backdrop of the Andes.", icon: "🦩" },
+          { heading: "Estancia Experience", content: "A chance to visit a working Patagonian ranch, see sheep shearing, and enjoy a traditional asado barbecue.", icon: "🐑" },
+          { heading: "Avenida Libertador", content: "The main street is filled with handicraft shops, chocolate stores, and parrillas (steakhouses).", icon: "🛍️" }
         ],
-        funFact: "The Southern Patagonian Ice Field is the third largest expanse of continental ice in the world."
+        funFact: "The town is named after the calafate berry. Local legend says if you eat it, you'll return to Patagonia."
+      };
+      if (d === 10) return {
+        title: "Farewell Patagonia: Back to Buenos Aires",
+        summary: "The Patagonia chapter closes as the boys fly north back to Buenos Aires. Chau chau, glaciers and mountains!",
+        lat: -34.603, lng: -58.381, localZoom: 13,
+        sections: [
+          { heading: "The Flight North", content: "A ~3-hour flight from El Calafate back to Buenos Aires, covering 2,700km from the tip of the continent.", icon: "✈️" },
+          { heading: "Up America Plaza", content: "Back at their Buenos Aires base for the final stretch of the trip.", icon: "🏨" },
+          { heading: "Buenos Aires Evening", content: "Time to swap hiking boots for city shoes and enjoy the vibrant nightlife of the capital.", icon: "🌃" }
+        ],
+        funFact: "El Calafate airport (FTE) is one of the southernmost commercial airports in the world, at latitude 50°S."
       };
       if (d === 11) return {
-        title: "Return to Buenos Aires",
-        summary: "The Patagonia portion ends today as the boys fly back to BA @ 10:30am local (11:30pm tonight in Brisbane).",
+        title: "Post-Tour Buenos Aires",
+        summary: "The G Adventures Patagonia tour officially ends today. The boys have free days to explore BA at their leisure.",
         lat: -34.558, lng: -58.416, localZoom: 13,
         sections: [
-          { heading: "The Long Flight", content: "It's a 2,700km journey from the tip of the continent back to the urban sprawl of Buenos Aires.", icon: "✈️" },
-          { heading: "Post-Tour Life", content: "The G Adventures tour ends today. They have 2 more nights in BA to explore.", icon: "🎒" },
-          { heading: "Recoleta", content: "They might visit the famous Recoleta Cemetery, where Eva Peron is buried.", icon: "🏛️" }
+          { heading: "Tour's End", content: "The official G Adventures SACC tour wraps up today. From here, the boys explore on their own.", icon: "🎒" },
+          { heading: "Recoleta", content: "They might visit the famous Recoleta Cemetery, where Eva Peron is buried among ornate mausoleums.", icon: "🏛️" },
+          { heading: "Palermo Parks", content: "Buenos Aires' green lung—perfect for a leisurely stroll after weeks of intense Patagonian hiking.", icon: "🌳" }
         ],
         funFact: "Buenos Aires is the birthplace of Pope Francis—you can even take a tour of the neighborhood where he grew up!"
       };
