@@ -56,12 +56,12 @@ Booking ID: 7839815 | PNR: IVUWEP / MKYUUT
   * Arrival in El Calafate: ~12:00pm.
   * Bus: El Calafate (12:30pm) -> El Chalten (3:30pm). Stay: El Chalten.
 
-- **Feb 8: El Chalten to El Calafate**
-  * Bus: Depart El Chalten (1:00pm) -> El Calafate (4:00pm). Stay: El Calafate.
+- **Feb 7: El Chalten to El Calafate**
+  * Transfer: El Chalten -> El Calafate (~3h). Stay: Posta Sur, El Calafate.
 
-- **Feb 11: El Calafate to Buenos Aires**
-  * Flight: ~10:30am -> Buenos Aires (AEP/EZE) [~3h]
-  * Arrival in Buenos Aires: ~1:30pm. Stay: Up America Plaza.
+- **Feb 10: El Calafate to Buenos Aires**
+  * Flight: El Calafate (FTE) -> Buenos Aires (AEP/EZE) [~3h]
+  * Arrival in Buenos Aires: afternoon. Stay: Up America Plaza.
 
 - **Feb 13: Buenos Aires to Santiago (Return Leg)**
   * LA424: AEP (9:05pm) -> SCL (11:18pm/11:21pm) [~2h 15m]
@@ -87,8 +87,10 @@ Booking ID: 7839815 | PNR: IVUWEP / MKYUUT
 - Feb 3: Welcome meeting G Adventures (SACC) @ 6:00pm in Buenos Aires.
 - Feb 5: Loma del Pliegue Tumbado Hike (360 views).
 - Feb 6: Laguna de los Tres (Fitz Roy viewpoint). Signature Hike.
-- Feb 7: Rio de las Vueltas Kayaking.
-- Feb 9: Perito Moreno Glacier tour (Pasarelas walkways).
+- Feb 7: Free day in El Chaltén (optional: Laguna Torre or Chorrillo del Salto), transfer to El Calafate.
+- Feb 8: Perito Moreno Glacier visit (included, optional boat ride).
+- Feb 9: Free day in El Calafate (Laguna Nimez, Estancia, souvenir shops).
+- Feb 10: Flight back to Buenos Aires from El Calafate.
 - Feb 12: Buenos Aires free day (San Telmo, La Boca, Tango).
 
 ## Response Guidelines
